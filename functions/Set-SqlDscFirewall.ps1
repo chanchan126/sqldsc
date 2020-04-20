@@ -7,6 +7,8 @@
         String containing the SQL Server instance name.
     .PARAMETER Features
         String. Include here SQL services that need firewall enabled or disabled
+    .PARAMETER Ensure
+        String. Determines whether enabled or disabled. Present or Absent values
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
@@ -37,7 +39,7 @@ function Set-SqlDscFirewall
 
         [Parameter()]
         [System.String]
-        $Ensure,
+        $Ensure = 'Present',
 
         [Parameter()]
         [System.String]
