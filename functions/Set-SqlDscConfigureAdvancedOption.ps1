@@ -51,8 +51,7 @@ function Set-SqlDscConfigureAdvancedOption
         $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
     }
 
-    $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
-    $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
+
 
     $SqlQuery = "sp_configure 'show advanced option', '$AdvancedOptionValue'; RECONFIGURE;"
 
@@ -64,6 +63,8 @@ function Set-SqlDscConfigureAdvancedOption
         QueryTimeout = 20
     }  
 
+    $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
+    $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
     If ($WindowsCred){
         $SqlParam.Add('PsDscRunAsCredential',$WindowsPSCred)
     }

@@ -57,7 +57,7 @@ Try {
     "Microsoft.SqlServer.SqlWmiManagement "
  
     Foreach ($Assembly in $Assemblies) {
-            [System.Reflection.Assembly]::LoadWithPartialName($Assembly) | Out-Null
+            $Assembly = [System.Reflection.Assembly]::LoadWithPartialName($Assembly) | Out-Null
     }
     
     $SMO = New-Object "Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer" ($SqlServerName)

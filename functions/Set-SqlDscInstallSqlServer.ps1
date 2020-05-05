@@ -109,7 +109,6 @@ function Set-SqlDscInstallSqlServer
         [System.String]
         $SApassword,
 
-
         [Parameter()]
         [Switch]
         $ForceReboot
@@ -178,10 +177,12 @@ If($TempDBFileSize -and $TempDBFileGrowth -and $TempDBLogFileSize -and $TempDBLo
     $sqlSetupParams.Add ('TempDBLogFileSizeGrowth',$TempDBLogFileSizeGrowth)
 }
 
-If ($ForceReboot) { $sqlSetupParams.Add ('ForceReboot',$ForceReboot) }
+If ($ForceReboot) { 
+    [boolean]$ForceRB = $true
+    $sqlSetupParams.Add ('ForceReboot',$ForceRB) }
 
 If ($SQLUpdatePath) {
-    $sqlSetupParams.Add ('UpdateEnabled','False')
+    $sqlSetupParams.Add ('UpdateEnabled','True')
     $sqlSetupParams.Add ('UpdateSource',$SQLUpdatePath)
 }
 
