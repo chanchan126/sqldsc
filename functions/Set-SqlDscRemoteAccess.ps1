@@ -31,7 +31,7 @@ function Set-SqlDscRemoteAccess
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [switch]
@@ -51,6 +51,10 @@ function Set-SqlDscRemoteAccess
 
     )
     try {
+
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
 
         If ($isEnabled){
             $RemoteAccess = 1

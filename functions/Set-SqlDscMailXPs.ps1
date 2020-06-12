@@ -51,7 +51,11 @@ function Set-SqlDscDisableMailXPs
 
     )
     try {
-
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
         If ($isEnabled){
             $DBMailXPvalue = 1
         }

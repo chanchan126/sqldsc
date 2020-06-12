@@ -1,18 +1,20 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+	SQL Server audit for server login
+    .DESCRIPTION
+        Sets SQL Server login audit level
     .PARAMETER SqlServer
-        String containing the SQL Server to connect to.
+        String. containing the SQL Server to connect to. Default is to apply for all available instances.
     .PARAMETER InstanceName
-        Name of the SQL instance.
-    .PARAMETER $AuditLevel
+        Name of the SQL instance. Defualt is MSSQLSERVER
+    .PARAMETER AuditLevel
         Uint64. set the value for login auditing. 0 = none, 1 = Success, 2 = Failure, 3 = All
     .EXAMPLE
         login to default instance and set audit level to All
         Set-SqlSmoAuditLevel -AuditLevel 3
 
         login to named instance and set audit level to failure
-        Set-SqlSmoAuditLevel -InstanceName 'NAMEDINSTANCE -AuditLevel 2
+        Set-SqlSmoAuditLevel -InstanceName 'NAMEDINSTANCE' -AuditLevel 2
 #>
 
 function Set-SqlSmoAuditLevel
@@ -40,12 +42,15 @@ function Set-SqlSmoAuditLevel
 
     $ErrorActionPreference = "Stop"
     
-    If (!$InstanceName -or $InstanceName -eq 'MSSQLSERVER'){
-        $InstanceName =''
-        $SQLInstance = $Hostname
+    If(!$InstanceName -or $InstanceName -eq '') {
+        $InstanceName = 'MSSQLSERVER'
+    }
+    
+    If ($InstanceName -eq 'MSSQLSERVER'){
+        $SQLInstance = $SqlServerName
     }
     Else{
-        $SQLInstance = (Join-Path "$Hostname\" "$InstanceName")
+        $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
     }
     
     Try {

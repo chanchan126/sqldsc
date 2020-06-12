@@ -1,12 +1,12 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Sets trace flag to the instance
     .PARAMETER SqlServer
-        String containing the SQL Server to connect to.
+        String. containing the SQL Server to connect to.
     .PARAMETER InstanceName
-        Name of the SQL instance.
+        String. Name of the SQL instance.
     .PARAMETER StartupParamValues
-        String containing the value of trace flags. if multiple values, separate them with a comma. ex. '-T1118;-T3226' 
+        String. containing the value of trace flags. if multiple values, separate them with a comma. ex. '-T1118;-T3226' 
     .PARAMETER RestartService
         $true = enable, $false = disable.
     
@@ -31,7 +31,7 @@ function Set-SqlSmoTraceFlag
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [System.String]
@@ -44,36 +44,52 @@ function Set-SqlSmoTraceFlag
     )
     $ErrorActionPreference = "Stop"
 
+    If(!$InstanceName -or $InstanceName -eq '') {
+        $InstanceName = 'MSSQLSERVER'
+    }
+
     $Assemblies=
-    "Microsoft.SqlServer.Management.Common",
-    "Microsoft.SqlServer.Smo",
-    "Microsoft.SqlServer.SqlWmiManagement "
+        "Microsoft.SqlServer.Management.Common",
+        "Microsoft.SqlServer.Smo",
+        "Microsoft.SqlServer.SqlWmiManagement "
  
     Foreach ($Assembly in $Assemblies) {
         [System.Reflection.Assembly]::LoadWithPartialName($Assembly) | Out-Null
     }
     
-    $SMO = New-Object "Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer" -ArgumentList $sqlserver
-
-    If ($InstanceName) {
+    $SMO = New-Object "Microsoft.SqlServer.Management.Smo.Wmi.ManagedComputer" -ArgumentList $SqlServerName
+    
+    If ($InstanceName -ne 'MSSQLSERVER') {
         $Service = $SMO.Services| Where-Object { $_.Name -eq 'MSSQL$' + $InstanceName }
     }
-    Else {
+    ElseIf ($InstanceName -eq 'MSSQLSERVER') {
         $Service = $SMO.Services| Where-Object { $_.Name -eq 'MSSQLSERVER' }
     }
 
     If ($StartupParamValues.Substring(0,1) -ne ';') {
-    $StartupParamNew = $StartupParamValues.Insert(0,';')
-    $Service.StartupParameters = $Service.StartupParameters + $StartupParamNew
-    $Service.StartupParameters
+        If($Service.StartupParameters -match $StartupParamValues) {
+            Write-Error "Trace flag already existing"
+        }
+        Else {
+            $StartupParamNew = $StartupParamValues.Insert(0,';')
+            $Service.StartupParameters += $StartupParamNew
+            $Service.StartupParameters
+            $Service.Alter()
+            Write-Host "Trace flag has been set. Please restart service to take effect" -BackgroundColor DarkGreen -ForegroundColor White
+        }
     }
     
     Else {
-    $Service.StartupParameters = $Service.StartupParameters + $StartupParamValues    
-    $Service.StartupParameters
+        If($Service.StartupParameters -match $StartupParamValues) {
+            Write-Error "Trace flag already existing"
+        }
+        Else {
+            $Service.StartupParameters += $StartupParamValues    
+            $Service.StartupParameters
+            $Service.Alter()
+            Write-Host "Trace flag has been set. Please restart service to take effect" -BackgroundColor DarkGreen -ForegroundColor White
+        }
     }
-    
-    $Service.Alter()
     
     If ($RestartService) {
         If ($InstanceName -eq 'MSSQLSERVER' ) {
@@ -92,9 +108,5 @@ function Set-SqlSmoTraceFlag
         }
         
     }
-    Else  {
-            Write-Host "Trace flag has been set. Please restart service to take effect" -BackgroundColor DarkGreen -ForegroundColor White
-    }
-
 }
 

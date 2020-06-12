@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Enable or disabled Advanced Configuration Option 
+    .Description
+        Sets the advanced configuration option to be enabled or disabled
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -42,40 +44,46 @@ function Set-SqlDscConfigureAdvancedOption
 
 
     )
-
-    #Set ServerName for Invoke-Sqlcmd
-    If (!$InstanceName -or $InstanceName -eq 'MSSQLSERVER'){
-        $SQLInstance = $SqlServerName
-    }
-    Else{
-        $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
-    }
-
-
-
-    $SqlQuery = "sp_configure 'show advanced option', '$AdvancedOptionValue'; RECONFIGURE;"
-
-    $SqlParam = @{
-        ServerInstance = $SQLInstance
-        SetQuery = $SqlQuery
-        TestQuery = $SqlQuery
-        GetQuery = $SqlQuery
-        QueryTimeout = 20
-    }  
-
-    $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
-    $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
-    If ($WindowsCred){
-        $SqlParam.Add('PsDscRunAsCredential',$WindowsPSCred)
-    }
+    try {
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
     
-    If ($AdvancedOptionValue -eq '1') { 
-        Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $SqlParam -Method Set -Verbose
-        Write-Host "SQL advanced configuration options has been enabled" -BackgroundColor DarkGreen -ForegroundColor White 
-    }
-    Else {
-        Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $SqlParam -Method Set -Verbose
-        Write-Host "SQL advanced configuration options has been disabled" -BackgroundColor DarkGreen -ForegroundColor White 
-    }
+        #Set ServerName for Invoke-Sqlcmd
+        If (!$InstanceName -or $InstanceName -eq 'MSSQLSERVER'){
+            $SQLInstance = $SqlServerName
+        }
+        Else{
+            $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
+        }
+
+        $SqlQuery = "sp_configure 'show advanced option', '$AdvancedOptionValue'; RECONFIGURE;"
+
+        $SqlParam = @{
+            ServerInstance = $SQLInstance
+            SetQuery = $SqlQuery
+            TestQuery = $SqlQuery
+            GetQuery = $SqlQuery
+            QueryTimeout = 20
+        }  
+
+        $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
+        $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
+        If ($WindowsCred){
+            $SqlParam.Add('PsDscRunAsCredential',$WindowsPSCred)
+        }
     
+        If ($AdvancedOptionValue -eq '1') { 
+            Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $SqlParam -Method Set -Verbose
+            Write-Host "SQL advanced configuration options has been enabled" -BackgroundColor DarkGreen -ForegroundColor White 
+        }
+        Else {
+            Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $SqlParam -Method Set -Verbose
+            Write-Host "SQL advanced configuration options has been disabled" -BackgroundColor DarkGreen -ForegroundColor White 
+        }
+    }
+ 
+    Catch {
+        Write-Error "$_"
+    }
 }

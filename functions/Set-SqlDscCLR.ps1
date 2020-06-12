@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Enable or Disable CLR
+    .Description
+        Sets the SQL Server CLR configuration to be enabled or disabled
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -27,7 +29,7 @@ function Set-SqlDscCLR
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [switch]
@@ -47,6 +49,10 @@ function Set-SqlDscCLR
 
     )
     try {
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
 
         If ($isEnabled){
             $clrvalue = 1
@@ -63,8 +69,6 @@ function Set-SqlDscCLR
             OptionValue = $clrvalue
         }
         
-
-
         If ($RestartService){
             [boolean]$RestartServ = 1
             $clr.Add('RestartService', $RestartServ)
@@ -94,6 +98,7 @@ function Set-SqlDscCLR
 
     }
     Catch { 
-        Write-Error "$_" }
+        Write-Error "$_" 
+    }
        
 }

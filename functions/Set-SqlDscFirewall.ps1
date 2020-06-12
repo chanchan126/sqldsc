@@ -7,6 +7,10 @@
         String containing the SQL Server instance name.
     .PARAMETER Features
         String. Include here SQL services that need firewall enabled or disabled
+    .PARAMETER SourcePath
+        String. Root location of the SQL install files
+    .PARAMETER Ensure
+        String. create or remove SQL firewall rules. Values should be either Present or Absent. Default is Enable/Present
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
@@ -36,6 +40,7 @@ function Set-SqlDscFirewall
         $SourcePath,
 
         [Parameter()]
+        [ValidateSet("Present","Absent")]
         [System.String]
         $Ensure,
 
@@ -49,30 +54,40 @@ function Set-SqlDscFirewall
 
 
     )
+    try {
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
+        If(!$Ensure -or $Ensure -eq '') {
+            $Ensure = 'Present'
+        }
 
-    #Enable firewall
-    $firewallparam = @{
-        Features     = $Features
-        InstanceName = $InstanceName
-        SourcePath   = $SourcePath
-    }
+        #Enable firewall
+        $firewallparam = @{
+            Ensure       = $Ensure
+            Features     = $Features
+            InstanceName = $InstanceName
+            SourcePath   = $SourcePath
+        }
 
-    If ($WindowsCred) {
-    $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
-    $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
-    }
+        If ($WindowsCred) {
+            $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
+            $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
+        }
 
-    If ($Ensure) {
-        $firewallparam.Add('Ensure',$Ensure)
-    }
-    
-    $Test = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlWindowsFirewall -Property $firewallparam -Method Test -Verbose
+        $Test = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlWindowsFirewall -Property $firewallparam -Method Test -Verbose
 
-    If (!$Test) {
-        Invoke-DscResource -ModuleName SqlServerDsc -Name SqlWindowsFirewall -Property $firewallparam -Method Set -Verbose
+        If (!$Test) {
+            Invoke-DscResource -ModuleName SqlServerDsc -Name SqlWindowsFirewall -Property $firewallparam -Method Set -Verbose
 
+        }
+        Else {
+            Write-Host "SQL advanced configuration options setting is already set" -BackgroundColor DarkGreen -ForegroundColor White
+        }
     }
-    Else {
-        Write-Host "SQL advanced configuration options setting is already set" -BackgroundColor DarkGreen -ForegroundColor White
-    }
+    Catch {
+        Write-Error "$_"
+    }    
 }

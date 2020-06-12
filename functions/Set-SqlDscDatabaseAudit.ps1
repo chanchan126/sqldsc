@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server CLR 
+        Database level auditing configuration.
     .Description
-        Set configuration option value for CLR
+        Sets database level auditing that captures all activities of the person logged in to the instance.
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -63,6 +63,11 @@ function Set-SqlDscDatabaseAudit
 
     )
     try {
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+
         #Set ServerName for Invoke-Sqlcmd
         If (!$InstanceName){
             $SQLInstance = $SqlServerName
@@ -129,9 +134,9 @@ function Set-SqlDscDatabaseAudit
                 $AuditParam.Add('PsDscRunAsCredential', $WindowsPSCred)
             }
 
-            $SqlTest = Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $AuditParam -Method Test -Verbose
+            $Test = Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $AuditParam -Method Test -Verbose
 
-            If (!$SqlTest) {
+            If (!$Test) {
                 Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $AuditParam -Method Set -Verbose
                 Write-Host "Database audit has been enabled" -BackgroundColor DarkGreen -ForegroundColor White
             }

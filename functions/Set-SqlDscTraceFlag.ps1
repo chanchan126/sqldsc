@@ -15,30 +15,38 @@ function Set-SqlDscTraceFlag
     (
         [Parameter()]
         [System.String]
-        $InstanceName  = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [System.String[]]
         $StartupParameters
     )
+    try {
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
 
-    $RegistryRoot = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL14.$InstanceName\MSSQLServer\Parameters"
-    $RegistryProperties = Get-ItemProperty $RegistryRoot
+        $RegistryRoot = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL14.$InstanceName\MSSQLServer\Parameters"
+        $RegistryProperties = Get-ItemProperty $RegistryRoot
 
-    ForEach ($StartupValue in $StartupParameters) {
+        ForEach ($StartupValue in $StartupParameters) {
         
-        $SQLArgParameters = $RegistryProperties.psobject.properties | Where-Object{$_.Name -like 'SQLArg*'} | Select-Object Name, Value
+            $SQLArgParameters = $RegistryProperties.psobject.properties | Where-Object{$_.Name -like 'SQLArg*'} | Select-Object Name, Value
 
-        If ($StartupValue -notin $SQLArgParameters.Value) {
-            $newSQLArg = "SQLArg"+($SQLArgParameters.Count)
+            If ($StartupValue -notin $SQLArgParameters.Value) {
+                $newSQLArg = "SQLArg"+($SQLArgParameters.Count)
             
-            Set-ItemProperty -Path $RegistryRoot -Name $newSQLArg -Value $StartupValue
-            Write-Host "Successfully added $StartupValue" -BackgroundColor DarkGreen -ForegroundColor White
+                Set-ItemProperty -Path $RegistryRoot -Name $newSQLArg -Value $StartupValue
+                Write-Host "Successfully added $StartupValue" -BackgroundColor DarkGreen -ForegroundColor White
            
-        } 
-        Else {
-            Write-Host "$StartupValue already set" -BackgroundColor DarkGreen -ForegroundColor White
+            } 
+            Else {
+                Write-Host "$StartupValue already set" -BackgroundColor DarkGreen -ForegroundColor White
+            }
         }
     }
+    Catch {
+        Write-Error "$_"
+    }    
 }

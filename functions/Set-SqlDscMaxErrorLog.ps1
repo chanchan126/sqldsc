@@ -52,8 +52,13 @@ function Set-SqlDscMaxErrorLog
         $WindowsPassword
     )
     try {
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+
         #Set ServerName for Invoke-Sqlcmd
-        If (!$InstanceName){
+        If ($InstanceName -eq 'MSSQLSERVER'){
             $SQLInstance = $SqlServerName
         }
         Else{

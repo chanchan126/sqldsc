@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Install SQL Server default or named instance. 
+        Install SQL Server with default or named instance. 
+    .DESCRIPTION
+        SQL Server instance installation with options aligned to SQL installation standards.
     .PARAMETER SQLSetupPath
         String containing the location of the setup exe file.
     .PARAMETER SQLUpdatePath
@@ -11,6 +13,8 @@
         String containing the features to be installed. ex. 'SQLENGINE' or 'SQLENGINE,IS' or 'SQLENGINE,IS,AS'
     .PARAMETER SQLCollation
         String containing the instance collation. if value is blank, default collation is SQL_Latin1_General_CP1_CI_AS
+    .PARAMETER SecurityMode
+        String containing login modes for the instance. 'Windows" for windows authentication only, 'SQL' for mixed mode
     .PARAMETER SQLSysAdminAccounts
         String array containing the Windows local or AD accounts
     .PARAMETER SQLInstanceDrive
@@ -30,6 +34,18 @@
     .PARAMETER TempDBLogFileSize
         UINT32 size of the tempdb log file
     .PARAMETER TempDBLogFileSizeGrowth
+        UNIT32 growth size extension of the tempdb log
+    .PARAMETER SVCaccount
+        String local or domain account for SQL Engine service
+    .PARAMETER SVCpassword
+        String password for SQL Engine service
+    .PARAMETER AgtSVCaccount
+        String local or domain account for SQL Agent service
+    .PARAMETER AgtSVCpassword
+        String password for SQL Agent service
+    .PARAMETER SApassword
+        String password for logging in as SA account. mandatory
+    .PARAMETER ForceReboot
     
 #>
 
@@ -52,11 +68,12 @@ function Set-SqlDscInstallSqlServer
 
         [Parameter()]
         [System.String]
-        $Features = 'SQLENGINE',
-    
+        $SQLCollation,
+
         [Parameter()]
+        [ValidateSet("SQL","Windows")]
         [System.String]
-        $SQLCollation = 'SQL_Latin1_General_CP1_CI_AS',
+        $SecurityMode = 'Windows',
 
         [Parameter()]
         [System.String[]]
@@ -84,32 +101,36 @@ function Set-SqlDscInstallSqlServer
         $SQLBackupDrive  = 'H:\MSSQL',
 
         [Parameter()]
-        [System.uint32]
-        $TempDBFileSize = 128,
+        [System.int64]
+        $TempDBFileSize, #1024
 
         [Parameter()]
-        [System.uint32]
-        $TempDBFileGrowth = 64,
+        [System.int64]
+        $TempDBFileGrowth, #256
 
         [Parameter()]
-        [System.uint32]
-        $TempDBLogFileSize = 128,
+        [System.int64]
+        $TempDBLogFileSize, #8
 
         [Parameter()]
-        [System.uint32]
-        $TempDBLogFileSizeGrowth = 64,
+        [System.int64]
+        $TempDBLogFileSizeGrowth, #512
 
-        [Parameter(Mandatory=$true)]
+        [Parameter()]
         [System.String]
         $SVCaccount,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter()]
         [System.String]
         $SVCpassword,
-
-        [Parameter(Mandatory=$true)]
+        
+        [Parameter()]
         [System.String]
-        $SAaccount,
+        $AgtSVCaccount,
+
+        [Parameter()]
+        [System.String]
+        $AgtSVCpassword,
 
         [Parameter(Mandatory=$true)]
         [System.String]
@@ -121,20 +142,28 @@ function Set-SqlDscInstallSqlServer
     )
 
     try {
+        $ErrorActionPreference = "Stop"
+        
         #Set InstanceName variable if not provided
         If(!$SQLInstanceName) {
             $SQLInstanceName = 'MSSQLSERVER'
         }
 
-        #Service Account
-        $SVCPass = ConvertTo-SecureString "$SVCpassword" -AsPlainText -Force
-        $SVCpsCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($SVCaccount, $SVCPass)
+        #Set SQL Collation if not provided
+        If (!$SQLCollation) {
+            $SQLCollation = 'SQL_Latin1_General_CP1_CI_AS'
+        }
 
-        #SA Account
-        $SAPass = ConvertTo-SecureString "$SApassword" -AsPlainText -Force
-        $SApsCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($SAaccount, $SAPass)
-
-        #Set TempDBfiles based on number of cores
+        #Set Defaults
+        If ($SApassword) {
+            $SAaccount = "sa"
+            $SAPass = ConvertTo-SecureString -String "$SApassword" -AsPlainText -Force
+            $SApsCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($SAaccount, $SAPass)
+        }
+        Else {
+            Write-Error "SA password required. Please input a value"
+        }
+        
         $cpuCores=Get-CimInstance -ClassName 'Win32_Processor' | Select-Object -ExpandProperty 'NumberOfCores';
         [uint32]$tempDBFilesCount = $cpuCores.Count
     
@@ -142,21 +171,16 @@ function Set-SqlDscInstallSqlServer
             [uint32]$tempDBFilesCount = 8
         }
 
-        #region: INSTALL SQL SERVER #
         $SQLMajorVersion = (Get-Item -Path $(Join-Path $SQLSetupPath 'setup.exe')).VersionInfo.ProductVersion.Split('.')[0]
         $BrowserSvcStartupType = if ($SQLInstanceName -eq 'MSSQLSERVER') { 'Disabled' } else { 'Automatic' }
 
-        If ($ForceReboot) {
-
+        #Set SQL DSC install parameters
             $sqlSetupParams = @{
                 SourcePath             = $SQLSetupPath
                 InstanceName           = $SQLInstanceName
-                Features               = $Features
+                Features               = 'SQLENGINE'
                 SQLCollation           = $SQLCollation
-                SQLSvcAccount          = $SVCpsCred
-                AgtSvcAccount          = $SVCpsCred
                 SQLSysAdminAccounts    = $SQLSysAdminAccounts
-                SecurityMode           = "SQL"
                 SAPwd                  = $SApsCred
                 InstallSharedDir       = "C:\Program Files\Microsoft SQL Server"
                 InstallSharedWOWDir    = "C:\Program Files (x86)\Microsoft SQL Server"
@@ -169,37 +193,66 @@ function Set-SqlDscInstallSqlServer
                 SQLTempDBLogDir        = (Join-Path $SQLTempdbDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\TEMPDB")
                 SQLBackupDir           = (Join-Path $SQLBackupDrive  "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\BACKUP")
                 SqlTempdbFileCount     = $tempDBFilesCount
-                SqlTempdbFileSize      = $TempDBFileSize
-                SqlTempdbFileGrowth    = $TempDBFileGrowth
-                SqlTempdbLogFileSize   = $TempDBLogFileSize
-                SqlTempdbLogFileGrowth = $TempDBLogFileSizeGrowth
                 BrowserSvcStartupType  = $BrowserSvcStartupType
+                AgtSvcStartupType      = 'Automatic'
         }
 
-        If($TempDBFileSize -and $TempDBFileGrowth -and $TempDBLogFileSize -and $TempDBLogFileSizeGrowth) {
-            $sqlSetupParams.Add ('TempDBFileSize',$TempDBFileSize)
-            $sqlSetupParams.Add ('TempDBFileGrowth',$TempDBFilTempDBFileGrowtheSize)
-            $sqlSetupParams.Add ('TempDBLogFileSize',$TempDBLogFileSize)
-            $sqlSetupParams.Add ('TempDBLogFileSizeGrowth',$TempDBLogFileSizeGrowth)
+        #set service accounts
+        If($SVCaccount -and $SVCpassword) {
+            $SVCPass = ConvertTo-SecureString -String "$SVCpassword" -AsPlainText -Force
+            $SVCpsCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($SVCaccount, $SVCPass)
+            $sqlSetupParams.Add('SQLSvcAccount',$SVCpsCred)
+            
+            If (!$AgtSVCaccount) {
+                $sqlSetupParams.Add('AgtSvcAccount',$SVCpsCred)
+            }
+            If ($AgtSVCaccount -and $AgtSVCpassword) {
+                $AgtSVCPass = ConvertTo-SecureString -String "$AgtSVCpassword" -AsPlainText -Force
+                $AgtSVCpsCred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ($AgtSVCaccount, $AgtSVCPass)
+                $sqlSetupParams.Add('AgtSvcAccount',$AgtSVCpsCred)
+            }
         }
 
-        If ($ForceReboot) { 
-            [boolean]$ForceRB = $true
-            $sqlSetupParams.Add('ForceReboot',$ForceRB) 
+        #set security mode
+        If($SecurityMode -eq 'SQL') {
+            $sqlSetupParams.Add('SecurityMode',$SecurityMode)
         }
-
+                
+        #set and only add tempdb if major version <= 13
+        If($SQLMajorVersion -ge 13) {
+            If($TempDBFileSize -or $TempDBFileGrowth -or $TempDBLogFileSize -or $TempDBLogFileSizeGrowth) {
+                If($TempDBFileSize -and $TempDBFileGrowth -and $TempDBLogFileSize -and $TempDBLogFileSizeGrowth) {
+                    $sqlSetupParams.Add('SqlTempdbFileSize',$TempDBFileSize)
+                    $sqlSetupParams.Add('SqlTempdbFileGrowth',$TempDBFileGrowth)
+                    $sqlSetupParams.Add('SqlTempdbLogFileSize',$TempDBLogFileSize)
+                    $sqlSetupParams.Add('SqlTempdbLogFileGrowth ',$TempDBLogFileSizeGrowth)
+                }
+                Else {
+                    Write-Error "Missing TempDB values, please fill in the TempDB parameters"
+                }
+            }
+        }
+        
+        #include CU/hotfix if there is any
         If ($SQLUpdatePath) {
             $sqlSetupParams.Add('UpdateEnabled','True')
             $sqlSetupParams.Add('UpdateSource',$SQLUpdatePath)
         }
 
+        #set reboot
+        If ($ForceReboot) { 
+            [boolean]$ForceRB = $true
+            $sqlSetupParams.Add('ForceReboot',$ForceRB) 
+        }
+
+        #install sql instance
         If ($SQLSetupPath) {
             $testSqlSetup = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlSetup -Property $sqlSetupParams -Method Test -Verbose
             If (!$testSqlSetup) {
                 Write-Host 'Installing(SqlSetup)...' -BackgroundColor White -ForegroundColor Black
                 Invoke-DscResource -ModuleName SqlServerDsc -Name SqlSetup -Property $sqlSetupParams -Method Set -Verbose
             }
-              
+             
             Else {
             Write-Host 'Skipping(SqlSetup)... SQL Instance already exists.' -BackgroundColor Yellow -ForegroundColor Black
             } 
@@ -209,7 +262,12 @@ function Set-SqlDscInstallSqlServer
             Write-Host 'Skipping(SqlSetup)... No setup path provided.' -BackgroundColor Yellow -ForegroundColor Black
         }
     } 
-
+     
     Catch{
         Write-Error "Error. Please check your command string: $_"
     }
+    
+    $SQLInstallVersion = $SQLMajorVersion + "0"
+    Get-Content "C:\Program Files\Microsoft SQL Server\$SQLInstallVersion\Setup Bootstrap\Log\Summary.txt" | Select-Object -First 8
+
+}

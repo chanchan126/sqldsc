@@ -33,7 +33,7 @@ function Set-SqlDscSysAdmin
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [switch]
@@ -53,7 +53,12 @@ function Set-SqlDscSysAdmin
     )
 
     try {
-        $ErrorActionPreference = 'Continue'
+        $ErrorActionPreference = 'Stop'
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
         #Set ServerName for Invoke-Sqlcmd
         If (!$InstanceName){
             $SQLInstance = $SqlServerName

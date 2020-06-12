@@ -1,12 +1,14 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Server level auditing for successful and/or failed logins 
+    .DESCRIPTION
+	Sets auditing level for server logins
     .PARAMETER SqlServer
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
         Name of the SQL instance.
-    .PARAMETER IsEnabled
-        $true = enable, $false = disable. 
+    .PARAMETER AuditLevel
+        UInt64. sets the level of auditing for logins on the server. 0 = none, 1 = success, 2= failure, 3 = all 
     .PARAMETER TCPDynamicPort
         $true = enable, $false = disable.
     .PARAMETER TCPPort
@@ -16,7 +18,7 @@
 
 #>
 
-function Set-SqlSmoAuditLevel
+function Set-SqlSmoServerAuditLogin
 {
     [CmdletBinding()]
     param
@@ -27,31 +29,21 @@ function Set-SqlSmoAuditLevel
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [System.UInt64]
-        $AuditLevel,
-
-        [Parameter()]
-        [ValidateNotNull()]
-        [System.String]
-        $TCPPortValue = '1433',
-
-        [Parameter()]
-        [ValidateNotNull()]
-        [switch]
-        $EnableDynamicTCP,
-
-        [Parameter()]
-        [switch]
-        $RestartService
+        $AuditLevel
 
     )
 
     $ErrorActionPreference = "Stop"
     Try {
-     
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
         $Assemblies=
         "Microsoft.SqlServer.Management.Common",
         "Microsoft.SqlServer.Smo",
@@ -66,16 +58,15 @@ function Set-SqlSmoAuditLevel
         $SMO.Settings.AuditLevel = $AuditLevel
         $SMO.Alter()
 
-        If ($AuditLevel -eq 0) { Write-Host "Audit Level set to None" }
-        If ($AuditLevel -eq 1) { Write-Host "Audit Level set to Success" }
-        If ($AuditLevel -eq 2) { Write-Host "Audit Level set to Failure" }
-        If ($AuditLevel -eq 3) { Write-Host "Audit Level set to All" }
-        
-
-
+        If ($AuditLevel -eq 0) { Write-Host "Audit Level for login is set to None" }
+        If ($AuditLevel -eq 1) { Write-Host "Audit Level for login is  set to Success" }
+        If ($AuditLevel -eq 2) { Write-Host "Audit Level for login is  set to Failure" }
+        If ($AuditLevel -eq 3) { Write-Host "Audit Level for login is  set to All" }
     }
 
-    Catch { Write-Error $_ }
+    Catch { 
+        Write-Error "$_" 
+    }
 
 }
 

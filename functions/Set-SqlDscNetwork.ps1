@@ -27,7 +27,7 @@ function Set-SqlDscNetwork
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [switch]
@@ -47,29 +47,38 @@ function Set-SqlDscNetwork
         $RestartService
 
     )
-
-    $tcp = @{
-        ServerName = $SqlServerName
-        InstanceName = $InstanceName
-        ProtocolName = 'TCP'
-        IsEnabled    = [boolean]$IsEnabled
-        TCPDynamicPort  = [boolean]$TCPDynamicPort
-        TCPPort         = $TCPPort
-        RestartService  = [boolean]$RestartService
-    }
+    Try {
+        
+        If(!$InstanceName -or $InstanceName -eq '') {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
+        $tcp = @{
+            ServerName = $SqlServerName
+            InstanceName = $InstanceName
+            ProtocolName = 'TCP'
+            IsEnabled    = [boolean]$IsEnabled
+            TCPDynamicPort  = [boolean]$TCPDynamicPort
+            TCPPort         = $TCPPort
+            RestartService  = [boolean]$RestartService
+        }
     
-    $tcptest = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerNetwork -Property $tcp -Method Test -Verbose
+        $tcptest = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerNetwork -Property $tcp -Method Test -Verbose
 
-    If ($tcptest -eq $false){
-        Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerNetwork -Property $tcp -Method Set -Verbose
-        If($Port -in (1433,1434)){
-            Write-Host "Port used is not recommended. Please choose another port for more security" -BackgroundColor Red -ForegroundColor White
+        If ($tcptest -eq $false){
+            Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerNetwork -Property $tcp -Method Set -Verbose
+            If($Port -in (1433,1434)){
+                Write-Host "Port used is not recommended. Please choose another port for more security" -BackgroundColor Red -ForegroundColor White
+            }
+            Else{
+            Write-Host "Port used is in compliance to SQL CIS" -BackgroundColor DarkGreen -ForegroundColor White
+            }
         }
-        Else{
-        Write-Host "Port used is in compliance to SQL CIS" -BackgroundColor DarkGreen -ForegroundColor White
+        Else {
+            Write-Host "$Port already in use. Please choose different port" -BackgroundColor Red -ForegroundColor White -InformationAction Stop
         }
     }
-    Else {
-    Write-Host "$Port already in use. Please choose different port" -BackgroundColor Red -ForegroundColor White -InformationAction Stop
-}
+    Catch {
+        Write-Error "$_"
+    }
 }

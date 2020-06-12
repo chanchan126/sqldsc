@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server CLR 
+        SQL Server Management Studio installation
     .Description
-        Set configuration option value for CLR
+        Installation for SSMS
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -39,19 +39,7 @@ function Set-SqlDscInstallSSMS
 
         [Parameter()]
         [System.String]
-        $SSMSProductId = '7871DA56-98B6-4EF8-B4D4-B7C310E14146',
-
-        [Parameter()]
-        [System.String]
-        $WindowsCred,
-
-        [Parameter()]
-        [System.String]
-        $WindowsPassword,
-
-        [Parameter()]
-        [switch]
-        $RestartService
+        $SSMSProductId = '7871DA56-98B6-4EF8-B4D4-B7C310E14146'
 
     )
     try {
