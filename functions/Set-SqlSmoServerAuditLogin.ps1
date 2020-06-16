@@ -2,7 +2,7 @@
     .SYNOPSIS
         Server level auditing for successful and/or failed logins 
     .DESCRIPTION
-	Sets auditing level for server logins
+	    Sets auditing level for server logins
     .PARAMETER SqlServer
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -15,7 +15,13 @@
         String value. Default port is 1433
     .PARAMETER RestartService
         $true = enable, $false = disable.
+    
+        .EXAMPLE
+        login to default instance and set audit level to All
+        SqlSmoServerAuditLogin -AuditLevel 3
 
+        login to named instance and set audit level to failure
+        SqlSmoServerAuditLogin -InstanceName 'NAMEDINSTANCE' -AuditLevel 2
 #>
 
 function Set-SqlSmoServerAuditLogin
@@ -45,9 +51,9 @@ function Set-SqlSmoServerAuditLogin
         }
         
         $Assemblies=
-        "Microsoft.SqlServer.Management.Common",
-        "Microsoft.SqlServer.Smo",
-        "Microsoft.SqlServer.SqlWmiManagement "
+        #"Microsoft.SqlServer.Management.Common",
+        "0Microsoft.SqlServer.Smo"#,
+        #"Microsoft.SqlServer.SqlWmiManagement "
  
         Foreach ($Assembly in $Assemblies) {
                 $Assembly = [System.Reflection.Assembly]::LoadWithPartialName($Assembly) | Out-Null

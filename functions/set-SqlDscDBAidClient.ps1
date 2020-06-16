@@ -1,7 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Install DBAid Client.  SQL intance and CHECK_MK agent needs to be installed first before continuing to run the script. 
-
+        DBAid Client for SQL monitoring and daily error checking 
+    .DESCRIPTION
+        Sets the DBAid client for SQL monitoring
     .PARAMETER SqlServerName
         String. Name of the server
     .PARAMETER InstanceNames

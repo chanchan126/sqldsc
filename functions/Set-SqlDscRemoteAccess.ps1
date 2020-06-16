@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server Remote Access 
+        Configuration option for SQL Server Remote Access 
     .Description
-        Set configuration option value for Remote Access
+        Sets Remote Access configuration option to be enabled or disabled.
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -17,7 +17,7 @@
         switch to determine instance restart
             
     .EXAMPLE
-        
+        Set-SqlDscRemoteAccess -isEnabled 1
 #>
 
 function Set-SqlDscRemoteAccess
@@ -77,9 +77,9 @@ function Set-SqlDscRemoteAccess
         }     
 
         If ($WindowsCred) {
-        $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
-        $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
-        $RemoteAccessDSC.Add('PsDscRunAsCredential', $WindowsPSCred)
+            $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
+            $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
+            $RemoteAccessDSC.Add('PsDscRunAsCredential', $WindowsPSCred)
         }
 
         $Test = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerConfiguration -Property $RemoteAccessDSC -Method Test -Verbose

@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Install SQL Server with default or named instance. 
+        SQL Server installation with default or named instance. 
     .DESCRIPTION
-        SQL Server instance installation with options aligned to SQL installation standards.
+        Sets target server to be installed with SQL Server instance including options aligned to SQL installation standards.
     .PARAMETER SQLSetupPath
         String containing the location of the setup exe file.
     .PARAMETER SQLUpdatePath
@@ -47,6 +47,9 @@
         String password for logging in as SA account. mandatory
     .PARAMETER ForceReboot
     
+    .EXAMPLE
+    Install SQL Server with default instance and default options
+    Set-SqlDscInstallSqlServer -SQLSetupPath "Z:\" -SApassword 'ThisisPassword123'
 #>
 
 function Set-SqlDscInstallSqlServer

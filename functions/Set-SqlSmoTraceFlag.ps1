@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Sets trace flag to the instance
+        SQL Server instance configuration for setting trace flags
+    .DESCRIPTION
+        Sets trace flag for a SQL Server instance 
     .PARAMETER SqlServer
         String. containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -68,7 +70,7 @@ function Set-SqlSmoTraceFlag
 
     If ($StartupParamValues.Substring(0,1) -ne ';') {
         If($Service.StartupParameters -match $StartupParamValues) {
-            Write-Error "Trace flag already existing"
+            Write-Host "Trace flag already existing" -BackgroundColor DarkGreen -ForegroundColor Yellow
         }
         Else {
             $StartupParamNew = $StartupParamValues.Insert(0,';')
@@ -81,7 +83,7 @@ function Set-SqlSmoTraceFlag
     
     Else {
         If($Service.StartupParameters -match $StartupParamValues) {
-            Write-Error "Trace flag already existing"
+            Write-Host "Trace flag already existing" -BackgroundColor DarkGreen -ForegroundColor Yellow
         }
         Else {
             $Service.StartupParameters += $StartupParamValues    

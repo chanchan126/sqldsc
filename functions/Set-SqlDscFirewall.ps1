@@ -1,21 +1,25 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Firewall port configuration to allow communication with the SQL Server 
+    .DESCRIPTION
+        Sets the Windows firewall to enable or disable SQL Server ports
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
         String containing the SQL Server instance name.
     .PARAMETER Features
-        String. Include here SQL services that need firewall enabled or disabled
+        String. SQL services that need firewall enabled or disabled (SQLENGINE, IS, AS)
     .PARAMETER SourcePath
-        String. Root location of the SQL install files
+        String. Root location of the SQL install files (Used for instance installation)
     .PARAMETER Ensure
-        String. create or remove SQL firewall rules. Values should be either Present or Absent. Default is Enable/Present
+        String. enable or disable SQL firewall rules. Values should be either Present or Absent. Default is Enable/Present
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
 
+    .EXAMPLE
+    Set-SqlDscFirewall -Features 'SQLENGINE' -Ensure Present
 #>
 
 function Set-SqlDscFirewall

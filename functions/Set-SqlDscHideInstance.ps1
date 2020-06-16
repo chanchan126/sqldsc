@@ -1,11 +1,15 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Hides instance from network.
+    .DESCRIPTION 
+        Sets the instance to be visible or hidden from the network. only works locally.
     .PARAMETER InstanceName
         String containing the SQL Server instance name.
     .PARAMETER EnableHideInstance
         Switch. enabled 
     
+    .EXAMPLE
+
 #>
 
 function Set-SqlDscHideInstance

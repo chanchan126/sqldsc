@@ -20,7 +20,7 @@
                 
     .EXAMPLE
     Connect to named instance using windows authentication
-    Set-SqlDscDatabaseAudit -InstanceName 'CHAN' -ServerAuditName 'CHAN_Audit' -ServerAuditFileSize '50MB' -WindowsCred "adsql\sql" -WindowsPassword "!%$^FHC" -Verbose
+    Set-SqlDscDatabaseAudit -InstanceName 'CHAN' -ServerAuditName 'CHAN_Audit' -ServerAuditFileSize '50MB' -WindowsCred "adsql\sql" -WindowsPassword "!%$^FHC"
     
 #>
 

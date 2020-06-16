@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server CLR 
+        Configuration option for setting Maximum number error log files 
     .Description
-        Set configuration option value for CLR
+        Sets configuration option value for CLR
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName

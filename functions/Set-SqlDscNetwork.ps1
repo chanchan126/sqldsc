@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        Network configuration to allow communication with the SQL Server 
+    .DESCRIPTION
+        Sets SQL Server instance settings to enable TCP and SQL ports or enable dynamic port option
     .PARAMETER SqlServer
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -12,8 +14,11 @@
     .PARAMETER TCPPort
         String value. Default port is 1433
     .PARAMETER RestartService
-        $true = enable, $false = disable.
+        Boolean. $true = enable, $false = disable.
 
+    .EXAMPLE
+        Enable SQL instance TCP and set default SQL port
+        Set-SqlDscNetwork -IsEnabled
 #>
 
 function Set-SqlDscNetwork

@@ -13,6 +13,9 @@
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
+    
+    .EXAMPLE
+    Set-SqlDscConfigureAdvancedOption -AdvancedOptionValue 1 -WindowsCred 'adsql\sql' -WindowsPassword '123qwe'
 
 #>
 

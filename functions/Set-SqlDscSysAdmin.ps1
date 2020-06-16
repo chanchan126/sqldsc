@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server CLR 
+        Configuration for SA account which can be renamed, enabled or disabled 
     .Description
-        Set configuration option value for CLR
+        Sets SA account to be renamed, enabled or disabled
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -19,7 +19,7 @@
         switch to determine instance restart
             
     .EXAMPLE
-        
+        Set-SqlDscSysAdmin -isSADisabled 1 -isSARenamed 1
 #>
 
 function Set-SqlDscSysAdmin

@@ -2,7 +2,7 @@
     .SYNOPSIS
         SQL Server Management Studio installation
     .Description
-        Installation for SSMS
+        Sets the target server to install SQL Server Management Studio. only works with local install
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -17,7 +17,9 @@
         switch to determine instance restart
             
     .EXAMPLE
-        
+    Install SSMS
+    Set-SqlDscInstallSSMS -SSMSPackage 'C:\SQLServerInstallation\PreReqs\SSMS-Setup-ENU.exe' -SSMSProductId '7871DA56-98B6-4EF8-B4D4-B7C310E14146'
+    
 #>
 
 function Set-SqlDscInstallSSMS

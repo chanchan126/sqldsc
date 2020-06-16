@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        configuration option for SQL Server MailXPs 
+        Configuration option for enabling or disabling SQL Server MailXPs 
     .Description
-        Set configuration option value for MailXPs
+        Sets configuration option value for MailXPs option
     .PARAMETER SqlServerName
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
@@ -17,10 +17,11 @@
         switch to determine instance restart
             
     .EXAMPLE
-        
+     Enable MailXPs 
+     Set-SqlDscMailXPs -isEnabled 1
 #>
 
-function Set-SqlDscDisableMailXPs
+function Set-SqlDscMailXPs
 {
     [CmdletBinding()]
     param

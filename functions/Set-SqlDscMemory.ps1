@@ -2,7 +2,7 @@
     .SYNOPSIS
         Configures SQL Server memory
     .Description
-        Configures SQL Server minimum and maximum memory according to Datacom standards. Values can be overridden when standards do not meet the requirements.
+        Sets SQL Server minimum and maximum memory configuration according to SQL standards. Values can be overridden when standards do not meet the requirements.
     .PARAMETER SqlServerName
         String containing the server/host to connect to.
     .PARAMETER InstanceName
@@ -23,7 +23,7 @@
             
     .EXAMPLE
         Connect to named instance with 128MB of min memory and 2048MB of max memory
-        Set-SqlDscMemory -InstanceName 'CHAN' -MinMemory 128 -MaxMemory 2048
+        Set-SqlDscMemory -InstanceName 'INSTNAME' -MinMemory 128 -MaxMemory 2048
         
         Connect to default instance with 1024 of minimum MB and OS Memory less 2GB for the max memory
         Set-SqlDscMemory -MinMemory 1024

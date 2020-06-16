@@ -1,7 +1,8 @@
 ﻿<#
     .SYNOPSIS
-    DBAid Collector collects information from all the SQL Servers that is configured in its configuration file. This can be configured to send email to datacom mailbox for daily checks.
-
+        DBAid Collector collects information from all the SQL Servers that is configured in its configuration file. This can be configured to send email to datacom mailbox for daily checks.
+    .DESCRIPTION
+        Sets the DBAid Collector on target server to collect information for SQL monitoring and daily checks
     .PARAMETER SQLServerName
         Install SQL Server default or named . If this is a clustered SQL instance, change this to $SqlServerName = "<VNN of SQL instance>"
     .PARAMETER InstanceNames

@@ -1,6 +1,8 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports and enable TCP  to allow communication with the SQL Server 
+        Network configuration to allow communication with the SQL Server 
+    .DESCRIPTION
+        Sets SQL Server instance settings to enable TCP and SQL ports or enable dynamic port option
     .PARAMETER SqlServer
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName

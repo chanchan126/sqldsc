@@ -32,7 +32,7 @@ function Set-SqlDscBackupCompression
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [switch]

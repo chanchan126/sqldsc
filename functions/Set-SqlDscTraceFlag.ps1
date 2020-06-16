@@ -1,11 +1,16 @@
 ﻿<#
     .SYNOPSIS
-        Set firewall ports to allow communication with the SQL Server 
+        SQL Server instance configuration for setting trace flags
+    .DESCRIPTION
+        Sets trace flag for a SQL Server instance 
     .PARAMETER InstanceName
         String containing the SQL Server instance name.
     .PARAMETER StartupParameter
         String Array. Trace flag value which will be added in the SQL Service startup. default is '-T3226'. comma separated if adding more '-T1234','-T5678', etc
     
+    .EXAMPLE
+        Set trace flag
+        Set-SqlDscTraceFlag -InstanceName 'INSTNAME' -StartupParameters '-T3288','-T4435'
 #>
 
 function Set-SqlDscTraceFlag

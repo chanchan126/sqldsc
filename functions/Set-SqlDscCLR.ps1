@@ -1,6 +1,6 @@
 ﻿<#
     .SYNOPSIS
-        Enable or Disable CLR
+        Configuration option for SQL Server CLR 
     .Description
         Sets the SQL Server CLR configuration to be enabled or disabled
     .PARAMETER SqlServerName
@@ -15,6 +15,9 @@
         String. Use this to login using Windows authentication
     .PARAMETER RestartService
         switch to determine instance restart
+    
+    .EXAMPLE
+    Set-SqlDscCLR -isEnabled 1
 
 #>
 

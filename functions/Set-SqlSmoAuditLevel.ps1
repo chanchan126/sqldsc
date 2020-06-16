@@ -1,8 +1,8 @@
 ﻿<#
     .SYNOPSIS
-	SQL Server audit for server login
+	    SQL Server audit for server login
     .DESCRIPTION
-        Sets SQL Server login audit level
+        Sets SQL Server audit level for server logins
     .PARAMETER SqlServer
         String. containing the SQL Server to connect to. Default is to apply for all available instances.
     .PARAMETER InstanceName
