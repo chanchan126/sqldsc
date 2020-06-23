@@ -12,7 +12,7 @@
     .PARAMETER Features
         String containing the features to be installed. ex. 'SQLENGINE' or 'SQLENGINE,IS' or 'SQLENGINE,IS,AS'
     .PARAMETER SQLCollation
-        String containing the instance collation. if value is blank, default collation is SQL_Latin1_General_CP1_CI_AS
+        String containing the instance collation. if value is blank, default collation is Latin1_General_CI_AS
     .PARAMETER SecurityMode
         String containing login modes for the instance. 'Windows" for windows authentication only, 'SQL' for mixed mode
     .PARAMETER SQLSysAdminAccounts
