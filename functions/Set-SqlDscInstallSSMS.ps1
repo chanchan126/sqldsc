@@ -1,21 +1,23 @@
 ﻿<#
     .SYNOPSIS
-        SQL Server Management Studio installation
+        SQL Server Management Studio installation. 
     .Description
-        Sets the target server to install SQL Server Management Studio. only works with local install
-    .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
-    .PARAMETER InstanceName
-        String containing the SQL Server instance name.
-    .PARAMETER IsEnabled
-        switch to determine whether the option is enabled or disabled
-    .PARAMETER WindowsCred
-        String. Use this to login using Windows authentication
-    .PARAMETER WindowsPassword
-        String. Use this to login using Windows authentication
-    .PARAMETER RestartService
-        switch to determine instance restart
-            
+        Sets the target server to install SQL Server Management Studio. only works with local install. Limited to install local only.
+    .PARAMETER SSMSPackage
+        String. Full path of the SSMS install file
+    .PARAMETER SSMSProductId
+        String. Product ID of the SSMS. Can be found by following the instructions from this site. https://gist.github.com/wsmelton/e2d9c6b2323d60d372d8192b24a24b0f
+
+        SSMS needs to be used needs to be installed in a separate computer to get the Product ID. Then run the command below on PowerShell ISE to get the results.
+
+        $x86Path = "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        $installedItemsX86 = Get-ItemProperty -Path $x86Path | Select-Object -Property DisplayName, PSChildName
+        $x64Path = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        $installedItemsX64 = Get-ItemProperty -Path $x64Path | Select-Object -Property DisplayName, PSChildName
+        $installedItems = $installedItemsX86 + $installedItemsX64
+        $installedItems | Where-Object -FilterScript { $_.DisplayName -like "Microsoft SQL Server Management Studio*" } | Sort-Object -Property DisplayName | fl
+
+                
     .EXAMPLE
     Install SSMS
     Set-SqlDscInstallSSMS -SSMSPackage 'C:\SQLServerInstallation\PreReqs\SSMS-Setup-ENU.exe' -SSMSProductId '7871DA56-98B6-4EF8-B4D4-B7C310E14146'
@@ -27,21 +29,13 @@ function Set-SqlDscInstallSSMS
     [CmdletBinding()]
     param
     (
-        #[Parameter()]
-        #[System.String]
-        #$SqlServerName = $env:COMPUTERNAME,
-
-        #[Parameter()]
-        #[System.String]
-        #$InstanceName = 'MSSQLSERVER',
+        [Parameter()]
+        [System.String]
+        $SSMSPackage,
 
         [Parameter()]
         [System.String]
-        $SSMSPackage = 'C:\SQLServerInstallation\PreReqs\SSMS-Setup-ENU.exe',
-
-        [Parameter()]
-        [System.String]
-        $SSMSProductId = '7871DA56-98B6-4EF8-B4D4-B7C310E14146'
+        $SSMSProductId
 
     )
     try {

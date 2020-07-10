@@ -4,21 +4,21 @@
     .Description
         Sets configuration option value for MailXPs option
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
-    .PARAMETER IsEnabled
-        switch to determine whether the option is enabled or disabled
+        String. Contains the SQL Server instance name.
+    .PARAMETER IsMailXPEnabled
+        Boolean. Determines whether the option is enabled or disabled
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
     .PARAMETER RestartService
-        switch to determine instance restart
+        Boolean. Determines whether to restart the SQL instance service
             
     .EXAMPLE
      Enable MailXPs 
-     Set-SqlDscMailXPs -isEnabled 1
+     Set-SqlDscMailXPs -IsMailXPEnabled 1
 #>
 
 function Set-SqlDscMailXPs
@@ -28,15 +28,15 @@ function Set-SqlDscMailXPs
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
-        [switch]
-        $isEnabled,
+        [System.Boolean]
+        $IsMailXPEnabled,
 
         [Parameter()]
         [System.String]
@@ -47,41 +47,35 @@ function Set-SqlDscMailXPs
         $WindowsPassword,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
     try {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
         
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
         
-        If ($isEnabled){
-            $DBMailXPvalue = 1
-        }
-        Else {
-            $DBMailXPvalue = 0
+        If (!$IsMailXPEnabled){
+            $IsMailXPEnabled = 0
         }
          
-        If ($RestartService){
-            [boolean]$RestartServ = 1
-            $clr.Add('RestartService', $RestartServ)
+        If ($RestartService -eq $true){
+            $dbmail.Add('RestartService', $RestartService)
         }       
         
-        #Disable Database Mail XPs
+        #DSC Database Mail XPs
         $dbmail = @{
             ServerName = $SqlServerName
             InstanceName = $InstanceName
             OptionName = "Database Mail XPs"
-            OptionValue = $DBMailXPvalue
+            OptionValue = $IsMailXPEnabled
         }
 
-        If ($RestartService){
-            [boolean]$RestartServ = 1
-            $dbmail.Add('RestartService', $RestartServ)
-        }
-        
         If ($WindowsCred) {
         $WinPass = ConvertTo-SecureString "$WindowsPassword" -AsPlainText -Force
         $WindowsPSCred = New-Object System.Management.Automation.PSCredential -ArgumentList ($WindowsCred, $WinPass)
@@ -96,8 +90,8 @@ function Set-SqlDscMailXPs
         Else {
             Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerConfiguration -Property $dbmail -Method Set -Verbose
      
-            If ($DBMailXP -eq 1){
-                Write-Host " is enabled. Please refer to SQL CIS for more information on security" -BackgroundColor Red -ForegroundColor White
+            If ($DBMailXPvalue -eq 1){
+                Write-Host "DBMailXP is enabled. Please refer to SQL CIS for more information on security" -BackgroundColor Red -ForegroundColor White
             }
             Else{
                 Write-Host "DBMailXP is disabled" -BackgroundColor DarkGreen -ForegroundColor White

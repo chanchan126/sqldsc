@@ -4,13 +4,13 @@
     .Description
         Sets SA account to be renamed, enabled or disabled
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. containing the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. containing the SQL Server instance name.
     .PARAMETER isSADisabled
-        switch to determine whether the option is enabled or disabled
+        Boolean. Determines whether the option is enabled or disabled. Default is enabled.
     .PARAMETER isSARenamed
-        switch to determine whether the option is renamed or not
+        Boolean. Determines whether the option is renamed or not. Default is renamed ($true).
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
@@ -19,7 +19,7 @@
         switch to determine instance restart
             
     .EXAMPLE
-        Set-SqlDscSysAdmin -isSADisabled 1 -isSARenamed 1
+        Set-SqlDscSysAdmin -isSADisabled $true -isSARenamed $true
 #>
 
 function Set-SqlDscSysAdmin
@@ -29,18 +29,18 @@ function Set-SqlDscSysAdmin
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
         $InstanceName,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $isSADisabled,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $isSARenamed,
 
         [Parameter()]
@@ -55,24 +55,36 @@ function Set-SqlDscSysAdmin
     try {
         $ErrorActionPreference = 'Stop'
         
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+        
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
+        }
+
+        If(!$isSADisabled){
+            $isSADisabled = $true
+        }
+
+        If(!$isSARenamed){
+            $isSARenamed = $true
         }
         
         #Set ServerName for Invoke-Sqlcmd
-        If (!$InstanceName){
+        If (!$InstanceName -or $InstanceName -eq 'MSSQLSERVER'){
             $SQLInstance = $SqlServerName
         }
         Else{
             $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
         }       
         
-        If($isSARenamed){
-            If ($isSADisabled){
+        If($isSARenamed -eq $true){
+            If ($isSADisabled -eq $true){
                 $DisableSAQuery = "ALTER LOGIN [sa] WITH NAME = [SAaccount];ALTER LOGIN [SAaccount] DISABLE"
             }
     
-            ElseIf($disabledSA -eq $false){
+            ElseIf($isSADisabled -eq $false){
                 $DisableSAQuery = "ALTER LOGIN [sa] WITH NAME = [SAaccount]"
             }
 
@@ -92,9 +104,9 @@ function Set-SqlDscSysAdmin
                 $DisableSA.Add('PsDscRunAsCredential', $WindowsPSCred)
             }
 
-            $checkSAExists = Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $DisableSA -Method Get -Verbose
+            $Test = Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $DisableSA -Method Get -Verbose
         
-            If ($checkSAExists -eq '') {
+            If (!$Test) {
                 Invoke-DscResource -ModuleName SQLServerDSC -Name SqlScriptQuery -Property $DisableSA -Method Set -Verbose
                 Write-Host "SA has been renamed and disabled" -BackgroundColor DarkGreen -ForegroundColor White
             }

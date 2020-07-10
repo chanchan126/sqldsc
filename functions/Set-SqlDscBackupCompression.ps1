@@ -2,23 +2,23 @@
     .SYNOPSIS
         Enable or Disable SQL Server backup compression
     .DESCRIPTION
-        sets the SQL Server backup compression to be enabled or disabled
+        Sets the SQL Server backup compression to be enabled or disabled
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER IsEnabled
-        switch to determine whether the option is enabled or disabled
+        switch. Determines whether the option is enabled or disabled. By default, this is enabled
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
     .PARAMETER RestartService
-        switch to determine instance restart
+        Boolean. Determines instance restart
 
     .EXAMPLE
-        Enable backup compression
-        Set-SqlDscBackupCompression -isEnabled 1
+        Enable backup compression on a named instance
+        Set-SqlDscBackupCompression -InstanceName 'INSTNAME' 
 #>
 
 function Set-SqlDscBackupCompression
@@ -28,14 +28,14 @@ function Set-SqlDscBackupCompression
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
         $InstanceName,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $isEnabled,
 
         [Parameter()]
@@ -47,21 +47,23 @@ function Set-SqlDscBackupCompression
         $WindowsPassword,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
     Try {
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+        
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 
-        If ($isEnabled){
-            $BackupCompression = 1
+        If (!$isEnabled){
+            $isEnabled = 1
         }
-        Else {
-            $BackupCompression = 0
-        }
+        
 
         #Enable Backup Compression
         $backup = @{
@@ -78,8 +80,8 @@ function Set-SqlDscBackupCompression
             $backup.Add('PsDscRunAsCredential', $WindowsPSCred)
         }
 
-        $Test = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerConfiguration -Property $backup -Method Test -Verbose
-        If ($Test) {
+        $SQLTest = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerConfiguration -Property $backup -Method Test -Verbose
+        If ($SQLTest) {
             Write-Host "Backup compression is already set" -BackgroundColor DarkMagenta -ForegroundColor White
         }
         Else {
@@ -93,7 +95,7 @@ function Set-SqlDscBackupCompression
             }
         }
 
-        If ($RestartService) {
+        If ($RestartService -eq $true) {
             If ($InstanceName -eq 'MSSQLSERVER' ) {
                 Stop-Service -Name 'MSSQLSERVER' -Force    
                 Start-Service -Name 'MSSQLSERVER'

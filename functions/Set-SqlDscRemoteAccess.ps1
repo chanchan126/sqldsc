@@ -4,20 +4,20 @@
     .Description
         Sets Remote Access configuration option to be enabled or disabled.
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. containing the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
-    .PARAMETER IsEnabled
-        switch to determine whether the option is enabled or disabled
+        String. containing the SQL Server instance name.
+    .PARAMETER IsRemoteEnabled
+        Boolean. Determines whether the option is enabled or disabled
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
     .PARAMETER RestartService
-        switch to determine instance restart
+        Boolean. to determine instance restart
             
     .EXAMPLE
-        Set-SqlDscRemoteAccess -isEnabled 1
+        Set-SqlDscRemoteAccess -IsRemoteEnabled 1
 #>
 
 function Set-SqlDscRemoteAccess
@@ -27,15 +27,15 @@ function Set-SqlDscRemoteAccess
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
         $InstanceName,
 
         [Parameter()]
-        [switch]
-        $isEnabled,
+        [System.Boolean]
+        $IsRemoteEnabled,
 
         [Parameter()]
         [System.String]
@@ -46,34 +46,36 @@ function Set-SqlDscRemoteAccess
         $WindowsPassword,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
     try {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
 
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 
-        If ($isEnabled){
-            $RemoteAccess = 1
+        If ($IsRemoteEnabled -eq $true){
+            $RemoteAccessValue = 1
         }
         Else {
-            $RemoteAccess = 0
+            $RemoteAccessValue = 0
         }
-                    
+                            
         #Disable Remote Access
         $RemoteAccessDSC = @{
             ServerName = $SqlServerName
             InstanceName = $InstanceName
             OptionName = "Remote Access"
-            OptionValue = $RemoteAccess
+            OptionValue = $RemoteAccessValue
         }
 
-        If ($RestartService){
-            [boolean]$RestartServ = 1
-            $RemoteAccessDSC.Add('RestartService', $RestartServ)
+        If ($RestartService -eq $true){
+             $RemoteAccessDSC.Add('RestartService', $RestartService)
         }     
 
         If ($WindowsCred) {
@@ -90,7 +92,7 @@ function Set-SqlDscRemoteAccess
         Else {
             Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerConfiguration -Property $RemoteAccessDSC -Method Set -Verbose
      
-            If ($RemoteAccess -eq 1){
+            If ($RemoteAccessValue -eq 1){
                 Write-Host "RemoteAccess is enabled. Please refer to SQL CIS for more information on security" -BackgroundColor Red -ForegroundColor White
             }
             Else{

@@ -5,7 +5,7 @@
         Sets target server to be installed with SQL Server Analysis Services feature.
     .PARAMETER SQLSetupPath
         String. containing the location of the setup exe file.
-    .PARAMETER SQLInstanceName
+    .PARAMETER InstanceName
         String. containing the name of the instance. if value is blank, default instance will be installed. If 2 or more instances are in the same server, just choose 1 instance as it is a shared service.
     .PARAMETER ASCollation
         String contains the AS collation. if value is blank, default collation is Latin1_General_CI_AS 
@@ -48,7 +48,7 @@ function Set-SqlDscFeatureAnalysisServices
 
         [Parameter()]
         [System.String]
-        $SQLInstanceName,
+        $InstanceName,
         
         [Parameter()]
         [System.String]
@@ -56,7 +56,7 @@ function Set-SqlDscFeatureAnalysisServices
 
         [Parameter()]
         [System.String[]]
-        $ASSysAdminAccounts = $env:USERNAME,
+        $ASSysAdminAccounts,
 
         [Parameter()]
         [System.String]
@@ -64,23 +64,23 @@ function Set-SqlDscFeatureAnalysisServices
 
         [Parameter()]
         [System.String]
-        $ASDataDrive = 'E:\MSSQL',
+        $ASDataDrive,
 
 
         [Parameter()]
         [System.String]
-        $ASLogDrive = 'F:\MSSQL',
+        $ASLogDrive,
 
         [Parameter()]
         [System.String]
-        $ASTempdbDrive  = 'G:\MSSQL',
+        $ASTempdbDrive,
 
         [Parameter()]
         [System.String]
-        $ASBackupDrive  = 'E:\MSSQL',
+        $ASBackupDrive,
 
         [Parameter()]
-        [ValidateSet ("MULTIDIMENSIONAL","TABULAR","POWERPIVOT")]
+        [ValidateSet("MULTIDIMENSIONAL","TABULAR","POWERPIVOT")]
         [System.String]
         $ASServerMode,
 
@@ -95,10 +95,10 @@ function Set-SqlDscFeatureAnalysisServices
         [Parameter()]
         [ValidateSet("Automatic","Disabled","Manual")]
         [System.String]
-        $AsSvcStartupType ,
+        $AsSvcStartupType,
 
         [Parameter()]
-        [Boolean]
+        [System.Boolean]
         $ForceReboot
     )
 
@@ -106,8 +106,24 @@ function Set-SqlDscFeatureAnalysisServices
         $ErrorActionPreference = "Stop"
         
         #Set InstanceName variable if not provided
-        If(!$SQLInstanceName) {
-            $SQLInstanceName = 'MSSQLSERVER'
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
+        }
+
+        If(!$ASDataDrive) {
+            $ASDataDrive  = 'E:\MSSQL'
+        }
+
+        If(!$ASLogDrive) {
+            $ASLogDrive  = 'F:\MSSQL'
+        }
+
+        If(!$ASTempdbDrive) {
+            $ASTempdbDrive  = 'G:\MSSQL'
+        }
+
+        If(!$ASBackupDrive) {
+            $ASBackupDrive  = 'H:\MSSQL'
         }
 
         #set Server mode if not provided
@@ -118,13 +134,13 @@ function Set-SqlDscFeatureAnalysisServices
         #Set SQL DSC install parameters
             $sqlSetupParams = @{
                 SourcePath             = $SQLSetupPath
-                InstanceName           = $SQLInstanceName
+                InstanceName           = $InstanceName
                 Features               = 'AS'
                 ASSysAdminAccounts     = $ASSysAdminAccounts
-                ASDataDir              = (Join-Path $ASDataDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\DATA")
-                ASLogDir               = (Join-Path $ASLogDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\LOG")
-                ASBackupDir            = (Join-Path $ASBackupDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\BACKUP")
-                ASTempDir              = (Join-Path $ASTempdbDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\TEMPDB")
+                ASDataDir              = (Join-Path $ASDataDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\DATA")
+                ASLogDir               = (Join-Path $ASLogDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\LOG")
+                ASBackupDir            = (Join-Path $ASBackupDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\BACKUP")
+                ASTempDir              = (Join-Path $ASTempdbDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\TEMPDB")
                 ASServerMode           = $ASServerMode
         }
 
@@ -136,7 +152,7 @@ function Set-SqlDscFeatureAnalysisServices
         }
 
         #set reboot
-        If ($ForceReboot) { 
+        If ($ForceReboot -eq $true) { 
             $sqlSetupParams.Add('ForceReboot',$ForceReboot) 
         }
 

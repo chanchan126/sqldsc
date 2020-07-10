@@ -5,7 +5,7 @@
         Sets the DBAid client for SQL monitoring
     .PARAMETER SqlServerName
         String. Name of the server
-    .PARAMETER InstanceNames
+    .PARAMETER InstanceName
         Hash String. contains 1 or more instances. Default is to include all instances installed on the server.
     .PARAMETER ConfigGDirectoryName
         String. Name for the config genie directory. Defualt name is Datacom
@@ -43,7 +43,7 @@ function Set-SqlDscDBAidClient
 
         [Parameter()]
         [System.String[]]
-        $InstanceNames,
+        $InstanceName,
 
         [Parameter()]
         [System.String]
@@ -85,27 +85,26 @@ function Set-SqlDscDBAidClient
     Try {
         $ErrorActionPreference = "Stop"
         
-        If (!$SqlServerName -or $SqlServerName -eq '') {
+        If (!$SqlServerName) {
             $SqlServerName = $env:COMPUTERNAME
         }
 
-        If (!$InstanceNames -or $InstanceNames -eq '') {
-            $InstanceNames = (get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server').InstalledInstances
+        If (!$InstanceName) {
+            $InstanceName = (get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server').InstalledInstances
+            If (!$InstanceName) {
+                Write-Error "No SQL instance installed. Aborting."
+            }
         }
 
-        If (!$InstanceNames) {
-            Write-Error "No SQL instance installed. Aborting."
-        }
-
-        If (!$ConfigGDirectory -or $ConfigGDirectory -eq '') {
+        If (!$ConfigGDirectory) {
             $ConfigGDirectory = "C:\Datacom"
         }
 
-        If(!$CollectorServiceAccount -or $CollectorServiceAccount -eq '') {
+        If(!$CollectorServiceAccount) {
             $CollectorServiceAccount = "NT AUTHORITY\SYSTEM"
         }
 
-        If(!$CheckServiceAccount -or $CheckServiceAccount -eq '') {
+        If(!$CheckServiceAccount) {
             $CheckServiceAccount = "NT AUTHORITY\SYSTEM"
         }
 
@@ -281,7 +280,7 @@ function Set-SqlDscDBAidClient
 
         #Execute DBAid SQL file
 
-        foreach ($instance in $InstanceNames) {
+        foreach ($instance in $InstanceName) {
             If ($instance -match "MSSQLSERVER") {
                 $SQLInstance = $SqlServerName
             }

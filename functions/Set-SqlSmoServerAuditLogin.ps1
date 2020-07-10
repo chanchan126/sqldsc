@@ -4,19 +4,13 @@
     .DESCRIPTION
 	    Sets auditing level for server logins
     .PARAMETER SqlServer
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server name to connect to.
     .PARAMETER InstanceName
-        Name of the SQL instance.
+        String. Name of the SQL instance.
     .PARAMETER AuditLevel
         UInt64. sets the level of auditing for logins on the server. 0 = none, 1 = success, 2= failure, 3 = all 
-    .PARAMETER TCPDynamicPort
-        $true = enable, $false = disable.
-    .PARAMETER TCPPort
-        String value. Default port is 1433
-    .PARAMETER RestartService
-        $true = enable, $false = disable.
     
-        .EXAMPLE
+    .EXAMPLE
         login to default instance and set audit level to All
         SqlSmoServerAuditLogin -AuditLevel 3
 
@@ -31,7 +25,7 @@ function Set-SqlSmoServerAuditLogin
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
@@ -46,14 +40,17 @@ function Set-SqlSmoServerAuditLogin
     $ErrorActionPreference = "Stop"
     Try {
         
-        If(!$InstanceName -or $InstanceName -eq '') {
-            $InstanceName = 'MSSQLSERVER'
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
         }
         
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
+        }
+
         $Assemblies=
-        #"Microsoft.SqlServer.Management.Common",
-        "0Microsoft.SqlServer.Smo"#,
-        #"Microsoft.SqlServer.SqlWmiManagement "
+        "Microsoft.SqlServer.Smo",
+        "Microsoft.SqlServer.SqlWmiManagement "
  
         Foreach ($Assembly in $Assemblies) {
                 $Assembly = [System.Reflection.Assembly]::LoadWithPartialName($Assembly) | Out-Null

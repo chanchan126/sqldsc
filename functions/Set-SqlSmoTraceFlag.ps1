@@ -29,7 +29,7 @@ function Set-SqlSmoTraceFlag
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
@@ -46,12 +46,15 @@ function Set-SqlSmoTraceFlag
     )
     $ErrorActionPreference = "Stop"
 
-    If(!$InstanceName -or $InstanceName -eq '') {
+    If(!$SqlServerName) {
+        $SqlServerName = $env:COMPUTERNAME
+    }
+
+    If(!$InstanceName) {
         $InstanceName = 'MSSQLSERVER'
     }
 
     $Assemblies=
-        "Microsoft.SqlServer.Management.Common",
         "Microsoft.SqlServer.Smo",
         "Microsoft.SqlServer.SqlWmiManagement "
  

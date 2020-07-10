@@ -4,21 +4,21 @@
     .DESCRIPTION
         Sets SQL Server instance settings to enable TCP and SQL ports or enable dynamic port option
     .PARAMETER SqlServer
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        Name of the SQL instance.
-    .PARAMETER IsEnabled
-        $true = enable, $false = disable. 
+        String. Name of the SQL instance.
+    .PARAMETER IsTCPEnabled
+        Boolean. Determines whether TCP is enabled or not. $true = enable, $false = disable. Default is set to true
     .PARAMETER TCPDynamicPort
-        $true = enable, $false = disable.
+        Boolean. Determines whether TCP Dynamic Port is enabled or not.$true = enable, $false = disable. Default is set to false
     .PARAMETER TCPPort
-        String value. Default port is 1433
+        String. Default port is 1433
     .PARAMETER RestartService
         Boolean. $true = enable, $false = disable.
 
     .EXAMPLE
         Enable SQL instance TCP and set default SQL port
-        Set-SqlDscNetwork -IsEnabled
+        Set-SqlDscNetwork -IsTCPEnabled
 #>
 
 function Set-SqlDscNetwork
@@ -28,44 +28,64 @@ function Set-SqlDscNetwork
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
         $InstanceName,
 
         [Parameter()]
-        [switch]
-        $IsEnabled,
+        [System.Boolean]
+        $IsTCPEnabled,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $TCPDynamicPort,
 
         [Parameter()]
         [ValidateNotNull()]
         [System.String]
-        $TCPPort = '1433',
+        $TCPPort,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
     Try {
         
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
-        
+
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$IsTCPEnabled) {
+            $IsTCPEnabled = $true
+        }
+
+        If(!$TCPDynamicPort) {
+            $TCPDynamicPort = $false
+        }
+
+        If(!$RestartService) {
+            $RestartService = $false
+        }
+
+        If(!$TCPPort){
+            $TCPPort = '1433'            
+        }
+
         $tcp = @{
             ServerName = $SqlServerName
             InstanceName = $InstanceName
             ProtocolName = 'TCP'
-            IsEnabled    = [boolean]$IsEnabled
-            TCPDynamicPort  = [boolean]$TCPDynamicPort
+            IsEnabled    = $IsTCPEnabled
+            TCPDynamicPort  = $TCPDynamicPort
             TCPPort         = $TCPPort
-            RestartService  = [boolean]$RestartService
+            RestartService  = $RestartService
         }
     
         $tcptest = Invoke-DscResource -ModuleName SqlServerDsc -Name SqlServerNetwork -Property $tcp -Method Test -Verbose

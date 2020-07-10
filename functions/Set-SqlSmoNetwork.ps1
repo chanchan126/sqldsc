@@ -7,10 +7,10 @@
         String containing the SQL Server to connect to.
     .PARAMETER InstanceName
         Name of the SQL instance.
-    .PARAMETER IsEnabled
-        $true = enable, $false = disable. 
+    .PARAMETER IsTCPEnabled
+        $true = enable, $false = disable. Default is disabled
     .PARAMETER TCPDynamicPort
-        $true = enable, $false = disable.
+        $true = enable, $false = disable. Default is disabled
     .PARAMETER TCPPort
         String value. Default port is 1433
     .PARAMETER RestartService
@@ -18,7 +18,7 @@
 
     .EXAMPLE
     Set default port and enable TCP
-    Set-SqlSmoNetwork -IsEnabled 1 -EnableDynamicTCP 0 -RestartService 1
+    Set-SqlSmoNetwork -IsTCPEnabled 1 -EnableDynamicTCP 0 -RestartService 1
 
 #>
 
@@ -29,20 +29,20 @@ function Set-SqlSmoNetwork
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
-        [switch]
-        $IsEnabled,
+        [System.Bloolean]
+        $IsTCPEnabled,
 
         [Parameter()]
         [ValidateNotNull()]
         [System.String]
-        $TCPPortValue = '1433',
+        $TCPPortValue,
 
         [Parameter()]
         [ValidateNotNull()]
@@ -50,7 +50,7 @@ function Set-SqlSmoNetwork
         $EnableDynamicTCP,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
@@ -58,6 +58,26 @@ function Set-SqlSmoNetwork
 
     Try {
         
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+        
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
+        }
+
+        If(!$IsTCPEnabled) {
+            $IsTCPEnabled = $false
+        }
+
+        If(!$TCPPortValue) {
+            $TCPPortValue = '1433'
+        }
+
+        If(!$EnableDynamicTCP) {
+            $EnableDynamicTCP = $false
+        }
+
         $Assemblies=
         "Microsoft.SqlServer.Management.Common",
         "Microsoft.SqlServer.Smo",
@@ -73,27 +93,27 @@ function Set-SqlSmoNetwork
         $TCPPort = $TCP.IPAddresses['IPAll'].IPAddressProperties['TcpPort']
         $TCPDynaPort = $TCP.IPAddresses['IPAll'].IPAddressProperties['TcpDynamicPorts']
     
-        If ($IsEnabled) {
+        If ($IsTCPEnabled) {
             If ($EnableDynamicTCP) {
-                $TCP.IsEnabled = $IsEnabled
+                $TCP.IsEnabled = $IsTCPEnabled
                 $TCPPort.Value = ''
                 $TCPDynaPort.Value = '0'
                 Write-Host "TCP has been enabled and Dynamic TCP has been set" -BackgroundColor DarkGreen -ForegroundColor White
             }
 
             Else {
-                $TCP.IsEnabled = $IsEnabled
+                $TCP.IsEnabled = $IsTCPEnabled
                 $TCPPort.Value = $TCPPortValue
                 $TCPDynaPort.Value = ''
                 Write-Host "TCP has been enabled with port $TCPPortValue"  -BackgroundColor DarkGreen -ForegroundColor White
             }
         }
         Else {
-            $TCP.IsEnabled = $IsEnabled
+            $TCP.IsEnabled = $IsTCPEnabled
             Write-Host "TCP has been disabled"  -BackgroundColor DarkGray -ForegroundColor White
         }
     
-        If ($RestartService) {
+        If ($RestartService -eq $true) {
             If ($InstanceName -eq 'MSSQLSERVER' ) {
                 Stop-Service -Name 'MSSQLSERVER' -Force    
                 $TCP.Alter()

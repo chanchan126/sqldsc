@@ -4,11 +4,11 @@
     .DESCRIPTION
         Sets the Windows firewall to enable or disable SQL Server ports
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER Features
-        String. SQL services that need firewall enabled or disabled (SQLENGINE, IS, AS)
+        String. SQL services that need firewall enabled or disabled (SQLENGINE, IS, AS). Default is SQLENGINE
     .PARAMETER SourcePath
         String. Root location of the SQL install files (Used for instance installation)
     .PARAMETER Ensure
@@ -29,15 +29,15 @@ function Set-SqlDscFirewall
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [System.String]
-        $Features = "SQLENGINE",
+        $Features,
 
         [Parameter()]
         [System.String]
@@ -59,13 +59,20 @@ function Set-SqlDscFirewall
 
     )
     try {
-        
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$InstanceNam) {
             $InstanceName = 'MSSQLSERVER'
         }
         
-        If(!$Ensure -or $Ensure -eq '') {
+        If(!$Ensure) {
             $Ensure = 'Present'
+        }
+
+        If(!$Features) {
+            $Features = 'SQLENGINE'
         }
 
         #Enable firewall

@@ -4,9 +4,9 @@
     .DESCRIPTION 
         Sets the instance to be visible or hidden from the network. only works locally.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER EnableHideInstance
-        Switch. enabled 
+        Boolean. Determines whether hiding of instance is enabled or not.
     
     .EXAMPLE
 
@@ -19,17 +19,23 @@ function Set-SqlDscHideInstance
     (
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [ValidateNotNull()]
-        [Switch]
-        $EnableHideInstance = $false
+        [System.Boolean]
+        $EnableHideInstance
     )
     try {
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
+
+        If(!$EnableHideInstance) {
+            $EnableHideInstance = $false
+        }
+
+
 
         $HidePropRoot = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL14.$InstanceName\MSSQLServer\SuperSocketNetLib"
         $HideProp = Get-ItemProperty -Path $HidePropRoot -Name 'HideInstance' | Select-Object -ExpandProperty HideInstance

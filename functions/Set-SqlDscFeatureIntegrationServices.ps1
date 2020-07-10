@@ -4,15 +4,15 @@
     .DESCRIPTION
         Sets target server to be installed with SQL Server Integration Services feature.
     .PARAMETER SQLSetupPath
-        String containing the location of the setup exe file.
-    .PARAMETER SQLInstanceName
-        String containing the name of the instance. if value is blank, default instance will be installed. If 2 or more instances are in the same server, just choose 1 instance as it is a shared service.
+        String. Contains the location of the setup exe file.
+    .PARAMETER InstanceName
+        String. Contains the name of the instance. if value is blank, default instance will be installed. If 2 or more instances are in the same server, just choose 1 instance as it is a shared service.
     .PARAMETER ISSvcAccount
-        String local or domain account for Integration Services 
+        String. Local or domain account for Integration Services 
     .PARAMETER ISSVCpassword
-        String password for Integration Services account
+        String. Password for Integration Services account
     .PARAMETER ForceReboot
-        Boolean. Commands server to restart OS
+        Boolean. Determines whether to restart the server
     
     .EXAMPLE
     Install IS feature with service accounts
@@ -30,7 +30,7 @@ function Set-SqlDscFeatureIntegrationServices
 
         [Parameter()]
         [System.String]
-        $SQLInstanceName,
+        $InstanceName,
         
         [Parameter()]
         [System.String]
@@ -41,7 +41,7 @@ function Set-SqlDscFeatureIntegrationServices
         $ISSVCpassword,
 
         [Parameter()]
-        [Boolean]
+        [System.Boolean]
         $ForceReboot
     )
 
@@ -49,14 +49,14 @@ function Set-SqlDscFeatureIntegrationServices
         $ErrorActionPreference = "Stop"
         
         #Set InstanceName variable if not provided
-        If(!$SQLInstanceName) {
-            $SQLInstanceName = 'MSSQLSERVER'
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
         }
 
         #Set SQL DSC install parameters
             $sqlSetupParams = @{
                 SourcePath             = $SQLSetupPath
-                InstanceName           = $SQLInstanceName
+                InstanceName           = $InstanceName
                 Features               = 'IS'
         }
 
@@ -68,7 +68,7 @@ function Set-SqlDscFeatureIntegrationServices
         }
 
         #set reboot
-        If ($ForceReboot) { 
+        If ($ForceReboot -eq $true) { 
             $sqlSetupParams.Add('ForceReboot',$ForceReboot) 
         }
 

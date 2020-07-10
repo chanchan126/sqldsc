@@ -4,17 +4,17 @@
     .Description
         Sets the SQL Server CLR configuration to be enabled or disabled
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER IsEnabled
-        switch to determine whether the option is enabled or disabled
+        Boolean. Determines whether the option is enabled or disabled
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
         String. Use this to login using Windows authentication
     .PARAMETER RestartService
-        switch to determine instance restart
+        Boolean. Determines the instance restart
     
     .EXAMPLE
     Set-SqlDscCLR -isEnabled 1
@@ -28,14 +28,14 @@ function Set-SqlDscCLR
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
         $InstanceName,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $isEnabled,
 
         [Parameter()]
@@ -47,17 +47,21 @@ function Set-SqlDscCLR
         $WindowsPassword,
 
         [Parameter()]
-        [switch]
+        [System.Boolean]
         $RestartService
 
     )
     try {
         
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 
-        If ($isEnabled){
+        If ($isEnabled -eq $true){
             $clrvalue = 1
         }
         Else {
@@ -72,9 +76,8 @@ function Set-SqlDscCLR
             OptionValue = $clrvalue
         }
         
-        If ($RestartService){
-            [boolean]$RestartServ = 1
-            $clr.Add('RestartService', $RestartServ)
+        If ($RestartService -eq $true){
+            $clr.Add('RestartService', $RestartService)
         }
 
         If ($WindowsCred) {

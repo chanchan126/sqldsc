@@ -12,7 +12,7 @@
 RootModule = 'sqldsc.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1'
+ModuleVersion = '1.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -35,7 +35,7 @@ PowerShellVersion = '5.0'
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
     #  @{ ModuleName = 'SqlServer'; ModuleVersion = '21.1.18121'; } use this template if specifying specific version
-    @{ ModuleName = 'sqlserverdsc'; ModuleVersion = '13.3.0'; }
+    @{ ModuleName = 'sqlserverdsc'; ModuleVersion = '14.0.0'; }
     #dbatools
     #ReportingServicesTools
 )

@@ -4,15 +4,15 @@
     .Description
         Sets database level auditing that captures all activities of the person logged in to the instance.
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Contains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER ServerAuditName
-        String containg the name of the Audit
+        String. Contains the name of the Audit
     .PARAMETER ServerAuditFileSize
-        String containing the size of the Audit file before rollover. It should contain the word "MB" Ex: '128MB'
+        String. Contains the size of the Audit file before rollover. It should contain the word "MB" Ex: '128MB'
     .PARAMETER AuditLogPath
-        String containing the location for the Audit log. Default to SQL error log path
+        String. Contains the location for the Audit log. Default to SQL error log path
     .PARAMETER WindowsCred
         String. Use this to login using Windows authentication
     .PARAMETER WindowsPassword
@@ -31,11 +31,11 @@ function Set-SqlDscDatabaseAudit
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [System.String]
@@ -55,16 +55,15 @@ function Set-SqlDscDatabaseAudit
 
         [Parameter()]
         [System.String]
-        $WindowsPassword,
+        $WindowsPassword
 
-        [Parameter()]
-        [switch]
-        $RestartService
-
-    )
+        )
     try {
-        
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 

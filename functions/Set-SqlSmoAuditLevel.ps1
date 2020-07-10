@@ -6,9 +6,9 @@
     .PARAMETER SqlServer
         String. containing the SQL Server to connect to. Default is to apply for all available instances.
     .PARAMETER InstanceName
-        Name of the SQL instance. Defualt is MSSQLSERVER
+        String. Name of the SQL instance. Defualt is MSSQLSERVER
     .PARAMETER AuditLevel
-        Uint64. set the value for login auditing. 0 = none, 1 = Success, 2 = Failure, 3 = All
+        UInt64. set the value for login auditing. 0 = none, 1 = Success, 2 = Failure, 3 = All
     .EXAMPLE
         login to default instance and set audit level to All
         Set-SqlSmoAuditLevel -AuditLevel 3
@@ -24,7 +24,7 @@ function Set-SqlSmoAuditLevel
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
@@ -32,29 +32,28 @@ function Set-SqlSmoAuditLevel
 
         [Parameter()]
         [System.Uint64]
-        $AuditLevel,
-
-        [Parameter()]
-        [switch]
-        $RestartService
+        $AuditLevel
 
     )
-
-    $ErrorActionPreference = "Stop"
-    
-    If(!$InstanceName -or $InstanceName -eq '') {
-        $InstanceName = 'MSSQLSERVER'
-    }
-    
-    If ($InstanceName -eq 'MSSQLSERVER'){
-        $SQLInstance = $SqlServerName
-    }
-    Else{
-        $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
-    }
     
     Try {
-     
+        $ErrorActionPreference = "Stop"
+        
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+        
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
+        }
+        
+        If ($InstanceName -eq 'MSSQLSERVER'){
+            $SQLInstance = $SqlServerName
+        }
+        Else{
+            $SQLInstance = (Join-Path "$SqlServerName\" "$InstanceName")
+        }
+
         $Assemblies=
         "Microsoft.SqlServer.Management.Common",
         "Microsoft.SqlServer.Smo",

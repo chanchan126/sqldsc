@@ -4,7 +4,7 @@
     .Description
         Sets configuration option value for CLR
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. containing the SQL Server to connect to.
     .PARAMETER InstanceName
         String containing the SQL Server instance name.
     .PARAMETER MaxNumLogs
@@ -29,11 +29,11 @@ function Set-SqlDscMaxErrorLog
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter()]
         [System.Int64]
@@ -52,8 +52,11 @@ function Set-SqlDscMaxErrorLog
         $WindowsPassword
     )
     try {
-        
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 

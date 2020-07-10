@@ -5,7 +5,7 @@
         Sets the DBAid Collector on target server to collect information for SQL monitoring and daily checks
     .PARAMETER SQLServerName
         Install SQL Server default or named . If this is a clustered SQL instance, change this to $SqlServerName = "<VNN of SQL instance>"
-    .PARAMETER InstanceNames
+    .PARAMETER InstanceName
         String. Name of the instance or instances. MSSQLSERVER is the default instance. If more than 1 instance, follow this pattern. 'INST1','INST2'
     .PARAMETER DBAidDBName
         String. Name of database to deploy dbaid to. "_dbaid" is the default DB Name
@@ -14,7 +14,7 @@
     .PARAMETER CollectorLocation
         String. Folder where to put SQL monitoring files for processing.
     .PARAMETER EmailEnable
-        Boolean. Enable or disable emailing of monitoring files
+        Boolean. Enable or disable emailing of monitoring files. Default is disabled
     .PAREMETER EmailSmtp
         String. SMTP server for client email
     .PARAMETER EmailTo
@@ -46,7 +46,7 @@ function Set-SqlDscDBAidCollector
  
         [Parameter()]
         [System.String[]]
-        $InstanceNames,
+        $InstanceName,
         
         [Parameter()]
         [System.String]
@@ -62,7 +62,7 @@ function Set-SqlDscDBAidCollector
         
         [Parameter()]
         [System.Boolean]
-        $EmailEnable = $False,
+        $EmailEnable,
         
         [Parameter()]
         [System.String]
@@ -86,34 +86,41 @@ function Set-SqlDscDBAidCollector
         
         [Parameter()]
         [System.String]
-        $Scheduler = "Windows"
+        $Scheduler
 
     )
     
     try {
         Write-Host "Deploying DBAid collector..." -BackgroundColor DarkGreen -ForegroundColor White    
         
-        If(!$InstanceNames -or $InstanceNames -eq '') {
-            $InstanceNames = (get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server').InstalledInstances
+        If(!$InstanceName) {
+            $InstanceName = (get-itemproperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server').InstalledInstances
+            If(!$InstanceName) {
+                Write-Error "No SQL instance installed. Aborting."
+            }
         }
-        $InstanceNames
-        If(!$SqlServerName -or $SqlServerName -eq '') {
+
+        If(!$SqlServerName) {
             $SqlServerName = $env:COMPUTERNAME
         }
 
-        If(!$DBAidDBName -or $DBAidDBName -eq '') {
+        If(!$DBAidDBName) {
             $DBAidDBName = '_dbaid'
         }
-    
-        If(!$EmailTo -or $EmailTo -eq '') {
+        
+        If(!$EmailEnable) {
+            $EmailEnable = $False
+        }
+        
+        If(!$EmailTo) {
             $EmailTo = "dnzsqlmon@datacom.co.nz"
         }
 
-        If (!$EmailFrom -or $EmailFrom -eq '') {
+        If (!$EmailFrom) {
             $EmailFrom = "customer@$SqlServerName.domain.co.nz"
         }
 
-        If (!$Scheduler -or $Scheduler -eq '') {
+        If (!$Scheduler) {
             $Scheduler = "Windows"
         }
 
@@ -147,7 +154,7 @@ function Set-SqlDscDBAidCollector
 
             #Update Config with new entry
 
-            ForEach ($Instance in $InstanceNames) {
+            ForEach ($Instance in $InstanceName) {
                 If ($Instance -eq 'MSSQLSERVER') {
                     $SQLInstance = $SqlServerName
                     $connectionstring = "Server=$SqlServerName;Database=$DBAidDBName;Trusted_Connection=True;"
@@ -174,7 +181,7 @@ function Set-SqlDscDBAidCollector
            $CollectorConfig.Save("$CollectorLocation\dbaid.collector.exe.config")
 
            # edit existing file if exists
-           ForEach ($Instance in $InstanceNames) {
+           ForEach ($Instance in $InstanceName) {
                 If ($Instance -imatch 'MSSQLSERVER') {
                     $SQLInstance = $SqlServerName
                     $connectionstring = "Server=$SqlServerName;Database=$DBAidDBName;Trusted_Connection=True;"
@@ -281,7 +288,7 @@ function Set-SqlDscDBAidCollector
     }
     catch {
       Write-Host "Some sort of terminating error deploying DBAid collector.
-      $_" -ForegroundColor Red
+      $_"
       $Error
     }
 }

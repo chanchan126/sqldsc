@@ -4,9 +4,9 @@
     .DESCRIPTION
         Sets trace flag for a SQL Server instance 
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER StartupParameter
-        String Array. Trace flag value which will be added in the SQL Service startup. default is '-T3226'. comma separated if adding more '-T1234','-T5678', etc
+        Hash String. Trace flag value which will be added in the SQL Service startup. default is '-T3226'. comma separated if adding more '-T1234','-T5678', etc
     
     .EXAMPLE
         Set trace flag
@@ -28,7 +28,7 @@ function Set-SqlDscTraceFlag
         $StartupParameters
     )
     try {
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
 

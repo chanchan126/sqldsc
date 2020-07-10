@@ -4,9 +4,9 @@
     .Description
         Sets the advanced configuration option to be enabled or disabled
     .PARAMETER SqlServerName
-        String containing the SQL Server to connect to.
+        String. Constains the SQL Server to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER AdvancedOptionValue
         String. Default value is 0 (disabled).
     .PARAMETER WindowsCred
@@ -26,16 +26,16 @@ function Set-SqlDscConfigureAdvancedOption
     (
         [Parameter()]
         [System.String]
-        $SqlServerName = $env:COMPUTERNAME,
+        $SqlServerName,
 
         [Parameter()]
         [System.String]
-        $InstanceName = 'MSSQLSERVER',
+        $InstanceName,
 
         [Parameter(Mandatory=$true)]
         [ValidateNotNull()]
         [System.String]
-        $AdvancedOptionValue = '0',
+        $AdvancedOptionValue,
 
         [Parameter()]
         [System.String]
@@ -48,10 +48,19 @@ function Set-SqlDscConfigureAdvancedOption
 
     )
     try {
-        If(!$InstanceName -or $InstanceName -eq '') {
+        If(!$SqlServerName) {
+            $SqlServerName = $env:COMPUTERNAME
+        }
+
+        If(!$InstanceName) {
             $InstanceName = 'MSSQLSERVER'
         }
-    
+        
+        If(!$AdvancedOptionValue) {
+            $AdvancedOptionValue = '0'
+        }
+        
+
         #Set ServerName for Invoke-Sqlcmd
         If (!$InstanceName -or $InstanceName -eq 'MSSQLSERVER'){
             $SQLInstance = $SqlServerName

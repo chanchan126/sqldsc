@@ -7,7 +7,7 @@
         String containing the location of the setup exe file.
     .PARAMETER SQLUpdatePath
         String containing the location of the setup exe file.
-    .PARAMETER SQLInstanceName
+    .PARAMETER InstanceName
         String containing the name of the instance. if value is blank, default instance will be installed
     .PARAMETER Features
         String containing the features to be installed. ex. 'SQLENGINE' or 'SQLENGINE,IS' or 'SQLENGINE,IS,AS'
@@ -67,7 +67,7 @@ function Set-SqlDscInstallSqlServer
 
         [Parameter()]
         [System.String]
-        $SQLInstanceName,
+        $InstanceName,
 
         [Parameter()]
         [System.String]
@@ -76,32 +76,32 @@ function Set-SqlDscInstallSqlServer
         [Parameter()]
         [ValidateSet("SQL","Windows")]
         [System.String]
-        $SecurityMode = 'Windows',
+        $SecurityMode,
 
         [Parameter()]
         [System.String[]]
-        $SQLSysAdminAccounts = $env:USERNAME,
+        $SQLSysAdminAccounts,
 
         [Parameter()]
         [System.String]
-        $SQLInstanceDrive = 'D:\MSSQL',
+        $SQLInstanceDrive,
 
         [Parameter()]
         [System.String]
-        $SQLDataDrive = 'E:\MSSQL',
+        $SQLDataDrive,
 
 
         [Parameter()]
         [System.String]
-        $SQLLogDrive = 'F:\MSSQL',
+        $SQLLogDrive,
 
         [Parameter()]
         [System.String]
-        $SQLTempdbDrive  = 'G:\MSSQL',
+        $SQLTempdbDrive,
 
         [Parameter()]
         [System.String]
-        $SQLBackupDrive  = 'H:\MSSQL',
+        $SQLBackupDrive,
 
         [Parameter()]
         [System.int64]
@@ -140,7 +140,7 @@ function Set-SqlDscInstallSqlServer
         $SApassword,
 
         [Parameter()]
-        [Switch]
+        [System.Boolean]
         $ForceReboot
     )
 
@@ -148,8 +148,8 @@ function Set-SqlDscInstallSqlServer
         $ErrorActionPreference = "Stop"
         
         #Set InstanceName variable if not provided
-        If(!$SQLInstanceName) {
-            $SQLInstanceName = 'MSSQLSERVER'
+        If(!$InstanceName) {
+            $InstanceName = 'MSSQLSERVER'
         }
 
         #Set SQL Collation if not provided
@@ -157,6 +157,34 @@ function Set-SqlDscInstallSqlServer
             $SQLCollation = 'SQL_Latin1_General_CP1_CI_AS'
         }
 
+        If(!$SecurityMode) {
+            $SecurityMode = 'Windows'
+        }
+
+        If(!$SQLSysAdminAccounts) {
+        $SQLSysAdminAccounts = $env:USERNAME
+        }
+
+        If(!$SQLInstanceDrive) {
+        $SQLInstanceDrive = 'D:\MSSQL'
+        }
+        
+        If(!$SQLDataDrive) {
+        $SQLDataDrive = 'E:\MSSQL'
+        }
+        
+        If(!$SQLLogDrive) {
+        $SQLLogDrive = 'F:\MSSQL'
+        }
+        
+        If(!$SQLTempdbDrive) {
+        $SQLTempdbDrive  = 'G:\MSSQL'
+        }
+        
+        If(!$SQLBackupDrive) {
+        $SQLBackupDrive  = 'H:\MSSQL'
+        }
+    
         #Set Defaults
         If ($SApassword) {
             $SAaccount = "sa"
@@ -167,6 +195,7 @@ function Set-SqlDscInstallSqlServer
             Write-Error "SA password required. Please input a value"
         }
         
+        #set tempdb files count
         $cpuCores=Get-CimInstance -ClassName 'Win32_Processor' | Select-Object -ExpandProperty 'NumberOfCores';
         [uint32]$tempDBFilesCount = $cpuCores.Count
     
@@ -174,13 +203,14 @@ function Set-SqlDscInstallSqlServer
             [uint32]$tempDBFilesCount = 8
         }
 
+        #set startup type
         $SQLMajorVersion = (Get-Item -Path $(Join-Path $SQLSetupPath 'setup.exe')).VersionInfo.ProductVersion.Split('.')[0]
-        $BrowserSvcStartupType = if ($SQLInstanceName -eq 'MSSQLSERVER') { 'Disabled' } else { 'Automatic' }
+        $BrowserSvcStartupType = if ($InstanceName -eq 'MSSQLSERVER') { 'Disabled' } else { 'Automatic' }
 
         #Set SQL DSC install parameters
             $sqlSetupParams = @{
                 SourcePath             = $SQLSetupPath
-                InstanceName           = $SQLInstanceName
+                InstanceName           = $InstanceName
                 Features               = 'SQLENGINE'
                 SQLCollation           = $SQLCollation
                 SQLSysAdminAccounts    = $SQLSysAdminAccounts
@@ -190,11 +220,11 @@ function Set-SqlDscInstallSqlServer
                 FeatureFlag            = @('DetectionSharedFeatures')
                 InstanceDir            = $SQLInstanceDrive
                 InstallSQLDataDir      = $SQLInstanceDrive
-                SQLUserDBDir           = (Join-Path $SQLDataDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\DATA")
-                SQLUserDBLogDir        = (Join-Path $SQLLogDrive  "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\LOG")
-                SQLTempDBDir           = (Join-Path $SQLTempdbDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\TEMPDB")
-                SQLTempDBLogDir        = (Join-Path $SQLTempdbDrive "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\TEMPDB")
-                SQLBackupDir           = (Join-Path $SQLBackupDrive  "MSSQL$SQLMajorVersion.$SQLInstanceName\MSSQL\BACKUP")
+                SQLUserDBDir           = (Join-Path $SQLDataDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\DATA")
+                SQLUserDBLogDir        = (Join-Path $SQLLogDrive  "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\LOG")
+                SQLTempDBDir           = (Join-Path $SQLTempdbDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\TEMPDB")
+                SQLTempDBLogDir        = (Join-Path $SQLTempdbDrive "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\TEMPDB")
+                SQLBackupDir           = (Join-Path $SQLBackupDrive  "MSSQL$SQLMajorVersion.$InstanceName\MSSQL\BACKUP")
                 SqlTempdbFileCount     = $tempDBFilesCount
                 BrowserSvcStartupType  = $BrowserSvcStartupType
                 AgtSvcStartupType      = 'Automatic'
@@ -243,9 +273,8 @@ function Set-SqlDscInstallSqlServer
         }
 
         #set reboot
-        If ($ForceReboot) { 
-            [boolean]$ForceRB = $true
-            $sqlSetupParams.Add('ForceReboot',$ForceRB) 
+        If ($ForceReboot -eq $true) { 
+            $sqlSetupParams.Add('ForceReboot',$ForceReboot) 
         }
 
         #install sql instance

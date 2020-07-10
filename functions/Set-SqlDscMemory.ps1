@@ -4,13 +4,13 @@
     .Description
         Sets SQL Server minimum and maximum memory configuration according to SQL standards. Values can be overridden when standards do not meet the requirements.
     .PARAMETER SqlServerName
-        String containing the server/host to connect to.
+        String. Contains the server/host to connect to.
     .PARAMETER InstanceName
-        String containing the SQL Server instance name.
+        String. Contains the SQL Server instance name.
     .PARAMETER MinMemory
-        int64 containing the minimum memory size in MB.
+        Int64. Contains the minimum memory size in MB.
     .PARAMETER MaxMemory
-        int64 containing the maximum memory size in MB. If no value provided, OS memory less 2GB will be implemented.
+        Int64. Contains the maximum memory size in MB. If no value provided, OS memory less 2GB will be implemented.
     .PARAMETER WindowsCred
         String. Use this in conjunction with WindowsPassword to login using Windows authentication.
     .PARAMETER WindowsPassword
@@ -18,7 +18,7 @@
     .PARAMETER WindowsPSCredential
         PSCredential. Use this to be prompted to enter username and password (instead of using WindowsCred and WindowsPassword).
     .PARAMETER RestartService
-        Boolean to determine whether the instance should be restarted
+        Boolean. Determines whether the instance should be restarted
     
             
     .EXAMPLE
@@ -63,8 +63,8 @@ function Set-SqlDscMemory
         $WindowsPSCredential, # Needs to be refactored (perhaps with parameter set) to only allow $WindowsCred OR $WindowsPSCredential)
 
         [Parameter()]
-        [boolean]
-        $RestartService = $false
+        [System.Boolean]
+        $RestartService
 
     )
     try {
@@ -113,8 +113,7 @@ function Set-SqlDscMemory
             OptionValue = $MaxMemory
         }
 
-        If ($RestartService -eq $True){
-#            [boolean]$RestartServ = 1
+        If ($RestartService -eq $true){
             $maxmem.Add('RestartService', $RestartService)
         }
         
